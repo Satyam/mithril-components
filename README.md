@@ -48,7 +48,7 @@ only what is visible on the screen.
 They are useful for large tables, large lists, infinite scrolling, 
 deferring rendering of below-the-fold content, and parallax sites.
 
-- ```occlusionContainer``` - A container to hold components able to render only what is visible.
+- ```occlusionList``` - Simple list, rendering only what is visible.
 
 ## Mixins
 Mixin ```ValidationMixin``` resides in ```mixins/ValidationMixins/```.
