@@ -78,7 +78,7 @@ A column definition may contain the following properties:
 
 * `key` {String} (mandatory): a unique key used to refer to the column.
 * `label` {String} the text to show at the column header.  Defaults to the `key`.
-* `children` {Array}  array if further columns definitions nested under this table header.
+* `children` {Array}  array of further columns definitions nested under this table header.
 * `field` {String} name of the property in the data containing the text to be shown.
 * `width` {Integer | CSS with spec} width of the column.  If a plain number, it will assumed to be in pixels.
 * `class` {String}  additional CSS class names to be added to each cell. This applies to the header cells as well as to the data cells.  Be sure to use the tagName along the className (`td.myClassName` or `th.myClassName`) in the CSS style sheet when defining the styles for each.
