@@ -1,0 +1,1017 @@
+{
+    "project": {
+        "name": "Mithril Components",
+        "description": "Components, Mixins and Patterns for Mithril",
+        "version": "0.0.1",
+        "url": "https://github.com/eddyystop/mithril-components"
+    },
+    "files": {
+        "components/datatable/datatable.js": {
+            "name": "components/datatable/datatable.js",
+            "modules": {
+                "Datatable": 1
+            },
+            "classes": {
+                "controller": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "patterns/seo-by-cleanup.js": {
+            "name": "patterns/seo-by-cleanup.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "public/js/vendor/picturefill.js": {
+            "name": "public/js/vendor/picturefill.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "public/js/vendor/select2.js": {
+            "name": "public/js/vendor/select2.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "app.js": {
+            "name": "app.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "Datatable": {
+            "name": "Datatable",
+            "submodules": {},
+            "classes": {
+                "controller": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "module",
+            "file": "components/datatable/datatable.js",
+            "line": 70,
+            "description": "A simple Datatable control\n==========================\n\nAllows the display of tabular information as a simple table.\n\nFeatures\n--------\n\n* Table description separate from data\n* Data source can be local array or remote webservice\n* Columns definition array allows to\n\t* Select data to display\n\t* enable column sorting\n\t* set column width\n\t* add CSS classNames\n* Table configuration allows to\n\t* set caption\n\t* set table width\n\t* set function to respond to click events on data cells",
+            "example": [
+                "\n\n\tvar app = {\n\n\t\tcontroller: function () {\n\n\t\t\tthis.datatable = new mc.Datatable.controller(\n\t\t\t\t// Columns definition:\n\t\t\t\t[\n\t\t\t\t\t{key:\"Empty\"},\n\t\t\t\t\t{key:\"Numbers\", children:[\n\t\t\t\t\t\t{key:\"SKU\", label:\"SKU\", sortable:true},\n\t\t\t\t\t\t{key:\"Quantity\", sortable:true, class:'right-aligned'}\n\t\t\t\t\t]},\n\t\t\t\t\t{key:\"Text\", children:[\n\t\t\t\t\t\t{key:\"Item\", sortable:true},\n\t\t\t\t\t\t{key:\"Description\", sortable:true, width:200}\n\t\t\t\t\t]}\n\t\t\t\t],\n\t\t\t\t// Other configuration:\n\t\t\t\t{\n\t\t\t\t\t// Address of the webserver supplying the data\n\t\t\t\t\turl:'data/stock.json',\n\n\t\t\t\t\t// Handler of click event on data cell\n\t\t\t\t\t// It receives the relevant information already resolved\n\t\t\t\t\tonCellClick: function (content, row, col) {\n\t\t\t\t\t\tconsole.log(content, row, col);\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t);\n\t\t},\n\n\t\tview: function (ctrl) {\n\t\t\treturn mc.Datatable.view(ctrl.datatable,  {\n\t\t\t\tcaption:'this is the caption'\n\t\t\t});\n\t\t}\n\t};"
+            ],
+            "author": "Daniel Barreiro (Satyam)\n\nMIT License"
+        }
+    },
+    "classes": {
+        "controller": {
+            "name": "controller",
+            "shortname": "controller",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Datatable",
+            "namespace": "",
+            "file": "components/datatable/datatable.js",
+            "line": 70,
+            "description": "Component controller",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "cols",
+                    "description": "Columns definition object.  An array of objects that may have one or more of the following properties:",
+                    "type": "Object",
+                    "props": [
+                        {
+                            "name": "key",
+                            "description": "(mandatory): a unique key used to refer to the column.",
+                            "type": "String"
+                        },
+                        {
+                            "name": "label",
+                            "description": "the text to show at the column header.  Defaults to the `key`.",
+                            "type": "String"
+                        },
+                        {
+                            "name": "children",
+                            "description": "array of further columns definitions nested under this table header.",
+                            "type": "Array"
+                        },
+                        {
+                            "name": "field",
+                            "description": "name of the property in the data containing the text to be shown.",
+                            "type": "String"
+                        },
+                        {
+                            "name": "width",
+                            "description": "width of the column.  If a plain number, it will assumed to be in pixels.",
+                            "type": "Integer | CSS with spec"
+                        },
+                        {
+                            "name": "class",
+                            "description": "additional CSS class names to be added to each cell. This applies to the header cells as well as to the data cells.  Be sure to use the tagName along the className (`td.myClassName` or `th.myClassName`) in the CSS style sheet when defining the styles for each.",
+                            "type": "String"
+                        },
+                        {
+                            "name": "sortable",
+                            "description": "the contents of the column can be sorted.",
+                            "type": "Boolean"
+                        },
+                        {
+                            "name": "formatter",
+                            "description": "function to format the value to be shown. It should return the value formatted for display. It will be called in the context (`this`) of the Datatable instance and will receive the following arguments:",
+                            "type": "Function",
+                            "props": [
+                                {
+                                    "name": "value",
+                                    "description": "value from the data store.",
+                                    "type": "Any"
+                                },
+                                {
+                                    "name": "row",
+                                    "description": "row to which the cell belongs.",
+                                    "type": "Object"
+                                },
+                                {
+                                    "name": "col",
+                                    "description": "column definition.",
+                                    "type": "Object"
+                                },
+                                {
+                                    "name": "attrs",
+                                    "description": "empty object later to be used to set the attributes on the cell.",
+                                    "type": "Object"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "config",
+                    "description": "Additional configuration properties",
+                    "type": "Object",
+                    "props": [
+                        {
+                            "name": "url",
+                            "description": "address of the webservice providing the data to be displayed.  It is passed verbatim to `m.request` to perform a `GET` request.",
+                            "type": "String"
+                        },
+                        {
+                            "name": "data",
+                            "description": "data to be displayed.  If both `url` and `data` are provided, the second prevails.  At least one must be given",
+                            "type": "Array"
+                        },
+                        {
+                            "name": "onCellClick",
+                            "description": "listener for a click on a data cell.  The function is called in the context (`this`) of the Datatable instance and will receive:",
+                            "type": "Function",
+                            "props": [
+                                {
+                                    "name": "content",
+                                    "description": "the content of the cell read from the data store, formatting, if any (not implemented yet) will not affect it.",
+                                    "type": "Any"
+                                },
+                                {
+                                    "name": "row",
+                                    "description": "row within the data store corresponding to the cell.",
+                                    "type": "Object"
+                                },
+                                {
+                                    "name": "col",
+                                    "description": "column definition for the column.",
+                                    "type": "Object"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "recordId",
+                            "description": "If present, it should be the name of the field within the record that serves as a primary id for the record.  Each TR element in the data section of the table will have a `data-record-id` attribute set to the value of this key, otherwise, the rows will simply be numbered.",
+                            "type": "String"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "classitems": [
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 100,
+            "description": "Internal copy of the columns definitions",
+            "itemtype": "property",
+            "name": "cols",
+            "type": "Object",
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 108,
+            "description": "Internal copy of the configuration options",
+            "itemtype": "property",
+            "name": "config",
+            "type": "Object",
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 127,
+            "description": "Sorts the data in response to a click in the corresponding icon in the header",
+            "itemtype": "method",
+            "name": "sort",
+            "params": [
+                {
+                    "name": "target",
+                    "description": "DOM element corresponding to the sorting icon",
+                    "type": "DOM node"
+                }
+            ],
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 151,
+            "description": "Responds to clicks on data cells and resolves the arguments to pass to the listener.",
+            "itemtype": "method",
+            "name": "onCellClick",
+            "params": [
+                {
+                    "name": "target",
+                    "description": "DOM node that was clicked.",
+                    "type": "DOM node"
+                }
+            ],
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 173,
+            "description": "Event listener for the click event on the TABLE element",
+            "itemtype": "method",
+            "name": "onclick",
+            "params": [
+                {
+                    "name": "e",
+                    "description": "Event object for the click event.",
+                    "type": "DOM Event"
+                }
+            ],
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 189,
+            "description": "Utility method to set the `width` attribute on a DOM Node if a valid width is found.",
+            "itemtype": "method",
+            "name": "setWidth",
+            "params": [
+                {
+                    "name": "attrs",
+                    "description": "Object to add the `width` property to, if any found",
+                    "type": "Object"
+                },
+                {
+                    "name": "width",
+                    "description": "Either a number, which is assumed in pixels or a CSS width specification",
+                    "type": "Any"
+                }
+            ],
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 204,
+            "description": "Main view for the component. Produces the TABLE element.",
+            "itemtype": "method",
+            "name": "view",
+            "params": [
+                {
+                    "name": "ctrl",
+                    "description": "Instance of the controller that will handle this view",
+                    "type": "Controller"
+                },
+                {
+                    "name": "options",
+                    "description": "Display options, including:",
+                    "type": "Object",
+                    "optional": true,
+                    "props": [
+                        {
+                            "name": "caption",
+                            "description": "caption to be shown in along the datatable.",
+                            "type": "String"
+                        },
+                        {
+                            "name": "width",
+                            "description": "sets the width of the table.  If a number, it will be assumed to be in pixels.",
+                            "type": "Integer | CSS width spec"
+                        },
+                        {
+                            "name": "classNames",
+                            "description": "overrides for various CSS class names:",
+                            "type": "Object",
+                            "props": [
+                                {
+                                    "name": "table='datatable'",
+                                    "description": "class name for the table element.",
+                                    "type": "String"
+                                },
+                                {
+                                    "name": "even='even'",
+                                    "description": "class name for the TR element of even-numbered rows.",
+                                    "type": "String"
+                                },
+                                {
+                                    "name": "odd='odd'",
+                                    "description": "class name for the TR element of odd-numbered rows.",
+                                    "type": "String"
+                                },
+                                {
+                                    "name": "sorted='sorted'",
+                                    "description": "class name for the TH and TD elements of the currently sorted column.",
+                                    "type": "String"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "return": {
+                "description": "Mithirl view description.",
+                "type": "Object"
+            },
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 250,
+            "description": "Provides the contents of the table.",
+            "itemtype": "method",
+            "name": "contentsView",
+            "params": [
+                {
+                    "name": "ctrl",
+                    "description": "Controller instance",
+                    "type": "Controller"
+                }
+            ],
+            "return": {
+                "description": "Mithirl view description.",
+                "type": "Object"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 267,
+            "description": "Provides the THEAD element of the table.",
+            "itemtype": "method",
+            "name": "headView",
+            "params": [
+                {
+                    "name": "ctrl",
+                    "description": "Controller instance",
+                    "type": "Controller"
+                },
+                {
+                    "name": "cols",
+                    "description": "Columns definition",
+                    "type": "Object"
+                },
+                {
+                    "name": "options",
+                    "description": "Configuration options from the view",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "Mithirl view description.",
+                "type": "Object"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 348,
+            "description": "Provides the TBODY element of the table.",
+            "itemtype": "method",
+            "name": "bodyView",
+            "params": [
+                {
+                    "name": "ctrl",
+                    "description": "Controller instance",
+                    "type": "Controller"
+                },
+                {
+                    "name": "cols",
+                    "description": "Columns definition",
+                    "type": "Object"
+                },
+                {
+                    "name": "options",
+                    "description": "Configuration options from the view",
+                    "type": "Object"
+                },
+                {
+                    "name": "data",
+                    "description": "Data to be rendered.",
+                    "type": "Array of Objects"
+                }
+            ],
+            "return": {
+                "description": "Mithirl view description.",
+                "type": "Object"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "components/datatable/datatable.js",
+            "line": 390,
+            "description": "Provides the CAPTION element of the table.",
+            "itemtype": "method",
+            "name": "captionView",
+            "params": [
+                {
+                    "name": "ctrl",
+                    "description": "Controller instance",
+                    "type": "Controller"
+                },
+                {
+                    "name": "options",
+                    "description": "Configuration options from the view",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "Mithirl view description.",
+                "type": "Object"
+            },
+            "access": "private",
+            "tagname": "",
+            "class": "controller",
+            "module": "Datatable"
+        },
+        {
+            "file": "patterns/seo-by-cleanup.js",
+            "line": 1,
+            "description": "The server prefers to generate a HTML first-page representation for SEO\npurposes, however Mithril does not reuse server-side generated DOM nodes.\n\nThis brute force workaround explicitly removes any server-side generated HTML\nso Mithril can render likely the same page.\n\nFrom @sanderhahn at https://github.com/lhorie/mithril.js/issues/60",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 37,
+            "description": "Shortcut method for matchMedia ( for easy overriding in tests )",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 44,
+            "description": "Shortcut method for `devicePixelRatio` ( for easy overriding in tests )",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 51,
+            "description": "Get width in css pixel value from a \"length\" value\nhttp://dev.w3.org/csswg/css-values-3/#length-value",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 59,
+            "description": "If length is specified in  `vw` units, use `%` instead since the div we’re measuring\nis injected at the top of the document.\n\nTODO: maybe we should put this behind a feature test for `vw`?",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 108,
+            "description": "Takes a source element and checks if its type attribute is present and if so, supported\nNote: for type tests that require a async logic,\nyou can define them as a function that'll run only if that type needs to be tested. Just make the test function call picturefill again when it is complete.\nsee the async webp test above for example",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 130,
+            "description": "Parses an individual `size` and returns the length, and optional media query",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 141,
+            "description": "Takes a string of sizes and returns the width in pixels as a number",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 175,
+            "description": "A lot of this was pulled from Boris Smus’ parser for the now-defunct WHATWG `srcset`\nhttps://github.com/borismus/srcset-polyfill/blob/master/js/srcset-info.js\n\n1. Let input (`srcset`) be the value passed to this algorithm.\n2. Let position be a pointer into input, initially pointing at the start of the string.\n3. Let raw candidates be an initially empty ordered list of URLs with associated \n   unparsed descriptors. The order of entries in the list is the order in which entries \n   are added to the list.",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 271,
+            "description": "Takes a srcset in the form of url/\nex. \"images/pic-medium.png 1x, images/pic-medium-2x.png 2x\" or\n    \"images/pic-medium.png 400w, images/pic-medium-2x.png 800w\" or\n    \"images/pic-small.png\"\nGet an array of image candidates in the form of\n     {url: \"/foo/bar.png\", resolution: 1}\nwhere resolution is http://dev.w3.org/csswg/css-values-3/#resolution-value\nIf sizes is specified, resolution is calculated",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/picturefill.js",
+            "line": 539,
+            "description": "Sets up picture polyfill by polling the document and running\nthe polyfill every 250ms until the document is ready.\nAlso attaches picturefill on resize",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 146,
+            "description": "Compares equality of a and b",
+            "params": [
+                {
+                    "name": "a",
+                    "description": ""
+                },
+                {
+                    "name": "b",
+                    "description": ""
+                }
+            ],
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 162,
+            "description": "Splits the string into an array of values, trimming each value. An empty array is returned for nulls or empty\nstrings",
+            "params": [
+                {
+                    "name": "string",
+                    "description": ""
+                },
+                {
+                    "name": "separator",
+                    "description": ""
+                }
+            ],
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 197,
+            "description": "filters mouse events so an event is fired only if the mouse moved.\n\nfilters out mouse events that occur when mouse is stationary but\nthe elements under the pointer are scrolled.",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 212,
+            "description": "Debounces a function. Returns a function that calls the original fn function only if no invocations have been made\nwithin the last quietMillis milliseconds.",
+            "params": [
+                {
+                    "name": "quietMillis",
+                    "description": "number of milliseconds to wait before invoking fn"
+                },
+                {
+                    "name": "fn",
+                    "description": "function to be debounced"
+                },
+                {
+                    "name": "ctx",
+                    "description": "object to be used as this reference within fn"
+                }
+            ],
+            "return": {
+                "description": "debounced version of fn"
+            },
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 380,
+            "description": "Produces an ajax-based query function",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "object containing configuration parameters",
+                    "props": [
+                        {
+                            "name": "params",
+                            "description": "parameter map for the transport ajax call, can contain such options as cache, jsonpCallback, etc. see $.ajax"
+                        },
+                        {
+                            "name": "transport",
+                            "description": "function that will be used to execute the ajax request. must be compatible with parameters supported by $.ajax"
+                        },
+                        {
+                            "name": "url",
+                            "description": "url for the data"
+                        },
+                        {
+                            "name": "data",
+                            "description": "a function(searchTerm, pageNumber, context) that should return an object containing query string parameters for the above url."
+                        },
+                        {
+                            "name": "dataType",
+                            "description": "request data type: ajax, jsonp, other datatypes supported by jQuery's $.ajax function or the transport function if specified"
+                        },
+                        {
+                            "name": "quietMillis",
+                            "description": "(optional) milliseconds to wait before making the ajaxRequest, helps debounce the ajax function if invoked too often"
+                        },
+                        {
+                            "name": "results",
+                            "description": "a function(remoteData, pageNumber, query) that converts data returned form the remote request to the format expected by Select2.\n     The expected format is an object containing the following keys:\n     results array of objects that will be used as choices\n     more (optional) boolean indicating whether there are more results available\n     Example: ,{id:2, text:'Blue'}], more:true}",
+                            "type": "Results:[id:1, text:'Red'"
+                        }
+                    ]
+                }
+            ],
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 447,
+            "description": "Produces a query function that works with a local array",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "object containing configuration parameters. The options parameter can either be an array or an\nobject.\n\nIf the array form is used it is assumed that it contains objects with 'id' and 'text' keys.\n\nIf the object form is used it is assumed that it contains 'data' and 'text' keys. The 'data' key should contain\nan array of objects that will be used as choices. These objects must contain at least an 'id' key. The 'text'\nkey can either be a String in which case it is expected that each element in the 'data' array has a key with the\nvalue of 'text' which will be used to match choices. Alternatively, text can be a function(item) that can extract\nthe text."
+                }
+            ],
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 538,
+            "description": "Checks if the formatter function should be used.\n\nThrows an error if it is not a function. Returns true if it should be used,\nfalse if no formatting should be performed.",
+            "params": [
+                {
+                    "name": "formatter",
+                    "description": ""
+                }
+            ],
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 553,
+            "description": "Returns a given value\nIf given a function, returns its output",
+            "params": [
+                {
+                    "name": "val",
+                    "description": "string|function"
+                },
+                {
+                    "name": "context",
+                    "description": "value of \"this\" to be passed to function"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "*"
+            },
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 581,
+            "description": "Default tokenizer. This function uses breaks the input on substring match of any string from the\nopts.tokenSeparators array and uses opts.createSearchChoice to create the choice object. Both of those\ntwo options have to be defined in order for the tokenizer to work.",
+            "params": [
+                {
+                    "name": "input",
+                    "description": "text user has typed so far or pasted into the search field"
+                },
+                {
+                    "name": "selection",
+                    "description": "currently selected choices"
+                },
+                {
+                    "name": "selectCallback",
+                    "description": "function(choice) callback tho add the choice to selection"
+                },
+                {
+                    "name": "opts",
+                    "description": "select2's opts"
+                }
+            ],
+            "return": {
+                "description": "undefined/null to leave the current input unchanged, or a string to change the input to the returned value"
+            },
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 643,
+            "description": "Creates a new class",
+            "params": [
+                {
+                    "name": "superClass",
+                    "description": ""
+                },
+                {
+                    "name": "methods",
+                    "description": ""
+                }
+            ],
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 1075,
+            "description": "Monitor the original element for changes and update select2 accordingly",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 1132,
+            "description": "Triggers the change event on the source element",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 1334,
+            "description": "Opens the dropdown",
+            "return": {
+                "description": "whether or not dropdown was opened. This method will return false if, for example,\nthe dropdown is already open, or if the 'open' event listener on the element called preventDefault().",
+                "type": "Boolean"
+            },
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 1356,
+            "description": "Performs the opening of the dropdown",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 1457,
+            "description": "Opens control, sets input value, and updates results.",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 1645,
+            "description": "Default tokenizer function which does nothing",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 1652,
+            "params": [
+                {
+                    "name": "initial",
+                    "description": "whether or not this is the call to this method right after the dropdown has been opened"
+                }
+            ],
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 1863,
+            "description": "Get the desired width for the container element.  This is\nderived first from option `width` passed to select2, then\nthe inline 'style' on the original element, and finally\nfalls back to the jQuery calculated element width.",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "public/js/vendor/select2.js",
+            "line": 2255,
+            "description": "Sets selection based on source element's value",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "app.js",
+            "line": 1,
+            "description": "Module dependencies.",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "app.js",
+            "line": 8,
+            "description": "Create Express server.",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "app.js",
+            "line": 14,
+            "description": "Express configuration.",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "app.js",
+            "line": 29,
+            "description": "Application routes.",
+            "class": "",
+            "module": "Datatable"
+        },
+        {
+            "file": "app.js",
+            "line": 69,
+            "description": "Start Express server.",
+            "class": "",
+            "module": "Datatable"
+        }
+    ],
+    "warnings": [
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " public/js/vendor/select2.js:553"
+        },
+        {
+            "message": "Missing item type\nThe server prefers to generate a HTML first-page representation for SEO\npurposes, however Mithril does not reuse server-side generated DOM nodes.\n\nThis brute force workaround explicitly removes any server-side generated HTML\nso Mithril can render likely the same page.\n\nFrom @sanderhahn at https://github.com/lhorie/mithril.js/issues/60",
+            "line": " patterns/seo-by-cleanup.js:1"
+        },
+        {
+            "message": "Missing item type\nShortcut method for matchMedia ( for easy overriding in tests )",
+            "line": " public/js/vendor/picturefill.js:37"
+        },
+        {
+            "message": "Missing item type\nShortcut method for `devicePixelRatio` ( for easy overriding in tests )",
+            "line": " public/js/vendor/picturefill.js:44"
+        },
+        {
+            "message": "Missing item type\nGet width in css pixel value from a \"length\" value\nhttp://dev.w3.org/csswg/css-values-3/#length-value",
+            "line": " public/js/vendor/picturefill.js:51"
+        },
+        {
+            "message": "Missing item type\nIf length is specified in  `vw` units, use `%` instead since the div we’re measuring\nis injected at the top of the document.\n\nTODO: maybe we should put this behind a feature test for `vw`?",
+            "line": " public/js/vendor/picturefill.js:59"
+        },
+        {
+            "message": "Missing item type\nTakes a source element and checks if its type attribute is present and if so, supported\nNote: for type tests that require a async logic,\nyou can define them as a function that'll run only if that type needs to be tested. Just make the test function call picturefill again when it is complete.\nsee the async webp test above for example",
+            "line": " public/js/vendor/picturefill.js:108"
+        },
+        {
+            "message": "Missing item type\nParses an individual `size` and returns the length, and optional media query",
+            "line": " public/js/vendor/picturefill.js:130"
+        },
+        {
+            "message": "Missing item type\nTakes a string of sizes and returns the width in pixels as a number",
+            "line": " public/js/vendor/picturefill.js:141"
+        },
+        {
+            "message": "Missing item type\nA lot of this was pulled from Boris Smus’ parser for the now-defunct WHATWG `srcset`\nhttps://github.com/borismus/srcset-polyfill/blob/master/js/srcset-info.js\n\n1. Let input (`srcset`) be the value passed to this algorithm.\n2. Let position be a pointer into input, initially pointing at the start of the string.\n3. Let raw candidates be an initially empty ordered list of URLs with associated \n   unparsed descriptors. The order of entries in the list is the order in which entries \n   are added to the list.",
+            "line": " public/js/vendor/picturefill.js:175"
+        },
+        {
+            "message": "Missing item type\nTakes a srcset in the form of url/\nex. \"images/pic-medium.png 1x, images/pic-medium-2x.png 2x\" or\n    \"images/pic-medium.png 400w, images/pic-medium-2x.png 800w\" or\n    \"images/pic-small.png\"\nGet an array of image candidates in the form of\n     {url: \"/foo/bar.png\", resolution: 1}\nwhere resolution is http://dev.w3.org/csswg/css-values-3/#resolution-value\nIf sizes is specified, resolution is calculated",
+            "line": " public/js/vendor/picturefill.js:271"
+        },
+        {
+            "message": "Missing item type\nSets up picture polyfill by polling the document and running\nthe polyfill every 250ms until the document is ready.\nAlso attaches picturefill on resize",
+            "line": " public/js/vendor/picturefill.js:539"
+        },
+        {
+            "message": "Missing item type\nCompares equality of a and b",
+            "line": " public/js/vendor/select2.js:146"
+        },
+        {
+            "message": "Missing item type\nSplits the string into an array of values, trimming each value. An empty array is returned for nulls or empty\nstrings",
+            "line": " public/js/vendor/select2.js:162"
+        },
+        {
+            "message": "Missing item type\nfilters mouse events so an event is fired only if the mouse moved.\n\nfilters out mouse events that occur when mouse is stationary but\nthe elements under the pointer are scrolled.",
+            "line": " public/js/vendor/select2.js:197"
+        },
+        {
+            "message": "Missing item type\nDebounces a function. Returns a function that calls the original fn function only if no invocations have been made\nwithin the last quietMillis milliseconds.",
+            "line": " public/js/vendor/select2.js:212"
+        },
+        {
+            "message": "Missing item type\nProduces an ajax-based query function",
+            "line": " public/js/vendor/select2.js:380"
+        },
+        {
+            "message": "Missing item type\nProduces a query function that works with a local array",
+            "line": " public/js/vendor/select2.js:447"
+        },
+        {
+            "message": "Missing item type\nChecks if the formatter function should be used.\n\nThrows an error if it is not a function. Returns true if it should be used,\nfalse if no formatting should be performed.",
+            "line": " public/js/vendor/select2.js:538"
+        },
+        {
+            "message": "Missing item type\nReturns a given value\nIf given a function, returns its output",
+            "line": " public/js/vendor/select2.js:553"
+        },
+        {
+            "message": "Missing item type\nDefault tokenizer. This function uses breaks the input on substring match of any string from the\nopts.tokenSeparators array and uses opts.createSearchChoice to create the choice object. Both of those\ntwo options have to be defined in order for the tokenizer to work.",
+            "line": " public/js/vendor/select2.js:581"
+        },
+        {
+            "message": "Missing item type\nCreates a new class",
+            "line": " public/js/vendor/select2.js:643"
+        },
+        {
+            "message": "Missing item type\nMonitor the original element for changes and update select2 accordingly",
+            "line": " public/js/vendor/select2.js:1075"
+        },
+        {
+            "message": "Missing item type\nTriggers the change event on the source element",
+            "line": " public/js/vendor/select2.js:1132"
+        },
+        {
+            "message": "Missing item type\nOpens the dropdown",
+            "line": " public/js/vendor/select2.js:1334"
+        },
+        {
+            "message": "Missing item type\nPerforms the opening of the dropdown",
+            "line": " public/js/vendor/select2.js:1356"
+        },
+        {
+            "message": "Missing item type\nOpens control, sets input value, and updates results.",
+            "line": " public/js/vendor/select2.js:1457"
+        },
+        {
+            "message": "Missing item type\nDefault tokenizer function which does nothing",
+            "line": " public/js/vendor/select2.js:1645"
+        },
+        {
+            "message": "Missing item type",
+            "line": " public/js/vendor/select2.js:1652"
+        },
+        {
+            "message": "Missing item type\nGet the desired width for the container element.  This is\nderived first from option `width` passed to select2, then\nthe inline 'style' on the original element, and finally\nfalls back to the jQuery calculated element width.",
+            "line": " public/js/vendor/select2.js:1863"
+        },
+        {
+            "message": "Missing item type\nSets selection based on source element's value",
+            "line": " public/js/vendor/select2.js:2255"
+        },
+        {
+            "message": "Missing item type\nModule dependencies.",
+            "line": " app.js:1"
+        },
+        {
+            "message": "Missing item type\nCreate Express server.",
+            "line": " app.js:8"
+        },
+        {
+            "message": "Missing item type\nExpress configuration.",
+            "line": " app.js:14"
+        },
+        {
+            "message": "Missing item type\nApplication routes.",
+            "line": " app.js:29"
+        },
+        {
+            "message": "Missing item type\nStart Express server.",
+            "line": " app.js:69"
+        }
+    ]
+}

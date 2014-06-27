@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>components/datatable/datatable.js - Mithril Components</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+            
+                <h1><img src="../assets/css/logo.png" title="Mithril Components"></h1>
+            
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: 0.0.1</em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+    <h2 class="off-left">APIs</h2>
+    <div id="api-tabview" class="tabview">
+        <ul class="tabs">
+            <li><a href="#api-classes">Classes</a></li>
+            <li><a href="#api-modules">Modules</a></li>
+        </ul>
+
+        <div id="api-tabview-filter">
+            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+        </div>
+
+        <div id="api-tabview-panel">
+            <ul id="api-classes" class="apis classes">
+            
+                <li><a href="../classes/controller.html">controller</a></li>
+            
+            </ul>
+
+            <ul id="api-modules" class="apis modules">
+            
+                <li><a href="../modules/Datatable.html">Datatable</a></li>
+            
+            </ul>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+        Show:
+        <label for="api-show-inherited">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </div>
+
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        <h1 class="file-heading">File: components/datatable/datatable.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+/*global m:false */
+var mc = mc || {};
+/**
+A simple Datatable control
+==========================
+
+Allows the display of tabular information as a simple table.
+
+Features
+--------
+
+* Table description separate from data
+* Data source can be local array or remote webservice
+* Columns definition array allows to
+    * Select data to display
+    * enable column sorting
+    * set column width
+    * add CSS classNames
+* Table configuration allows to
+    * set caption
+    * set table width
+    * set function to respond to click events on data cells
+    
+@example
+
+    var app = {
+
+        controller: function () {
+
+            this.datatable = new mc.Datatable.controller(
+                // Columns definition:
+                [
+                    {key:&quot;Empty&quot;},
+                    {key:&quot;Numbers&quot;, children:[
+                        {key:&quot;SKU&quot;, label:&quot;SKU&quot;, sortable:true},
+                        {key:&quot;Quantity&quot;, sortable:true, class:&#x27;right-aligned&#x27;}
+                    ]},
+                    {key:&quot;Text&quot;, children:[
+                        {key:&quot;Item&quot;, sortable:true},
+                        {key:&quot;Description&quot;, sortable:true, width:200}
+                    ]}
+                ],
+                // Other configuration:
+                {
+                    // Address of the webserver supplying the data
+                    url:&#x27;data/stock.json&#x27;,
+
+                    // Handler of click event on data cell
+                    // It receives the relevant information already resolved
+                    onCellClick: function (content, row, col) {
+                        console.log(content, row, col);
+                    }
+                }
+            );
+        },
+
+        view: function (ctrl) {
+            return mc.Datatable.view(ctrl.datatable,  {
+                caption:&#x27;this is the caption&#x27;
+            });
+        }
+    };
+    
+@module Datatable
+@author Daniel Barreiro (Satyam)
+
+MIT License
+*/
+mc.Datatable = {
+    /**
+    Component controller
+    @class controller
+    @constructor
+    @param cols {Object} Columns definition object.  An array of objects that may have one or more of the following properties:
+    @param cols.key {String} (mandatory): a unique key used to refer to the column.
+    @param cols.label {String} the text to show at the column header.  Defaults to the &#x60;key&#x60;.
+    @param cols.children {Array}  array of further columns definitions nested under this table header.
+    @param cols.field {String} name of the property in the data containing the text to be shown.
+    @param cols.width {Integer | CSS with spec} width of the column.  If a plain number, it will assumed to be in pixels.
+    @param cols.class {String}  additional CSS class names to be added to each cell. This applies to the header cells as well as to the data cells.  Be sure to use the tagName along the className (&#x60;td.myClassName&#x60; or &#x60;th.myClassName&#x60;) in the CSS style sheet when defining the styles for each.
+    @param cols.sortable {Boolean} the contents of the column can be sorted.
+    @param cols.formatter {Function} function to format the value to be shown. It should return the value formatted for display. It will be called in the context (&#x60;this&#x60;) of the Datatable instance and will receive the following arguments:
+    @param cols.formatter.value {Any} value from the data store.
+    @param cols.formatter.row {Object} row to which the cell belongs.
+    @param cols.formatter.col {Object} column definition.
+    @param cols.formatter.attrs {Object} empty object later to be used to set the attributes on the cell.    
+    
+    @param config {Object} Additional configuration properties
+    @param config.url {String} address of the webservice providing the data to be displayed.  It is passed verbatim to &#x60;m.request&#x60; to perform a &#x60;GET&#x60; request.
+    @param config.data {Array} data to be displayed.  If both &#x60;url&#x60; and &#x60;data&#x60; are provided, the second prevails.  At least one must be given
+    @param config.onCellClick {function} listener for a click on a data cell.  The function is called in the context (&#x60;this&#x60;) of the Datatable instance and will receive:
+    @param config.onCellClick.content {Any} the content of the cell read from the data store, formatting, if any (not implemented yet) will not affect it.
+    @param config.onCellClick.row {Object} row within the data store corresponding to the cell.
+    @param config.onCellClick.col {Object} column definition for the column.
+    @param config.recordId {String} If present, it should be the name of the field within the record that serves as a primary id for the record.  Each TR element in the data section of the table will have a &#x60;data-record-id&#x60; attribute set to the value of this key, otherwise, the rows will simply be numbered.
+    */
+    
+    
+    controller: function (cols, config) {
+        /**
+        Internal copy of the columns definitions
+        
+        @property cols {Object}
+        @private
+        */
+        this.cols = cols;
+        
+        /**
+        Internal copy of the configuration options
+        
+        @property config {Object}
+        @private
+        */
+        this.config = config = config || {};
+
+
+        if (config.url) {
+            this.data = m.request({
+                url: config.url,
+                method: &#x27;GET&#x27;
+            });
+        }
+        if (config.data) {
+            this.data = (typeof config.data == &#x27;function&#x27; ? config.data : m.prop(config.data));
+        }
+
+        /**
+        Sorts the data in response to a click in the corresponding icon in the header
+        
+        @method sort
+        @param target {DOM node} DOM element corresponding to the sorting icon
+        @private
+        */
+        this.sort = function (target) {
+            var key = target.parentNode.getAttribute(&#x27;data-colkey&#x27;),
+                col = this.activeCols[key];
+            if (this.lastSorted &amp;&amp; this.lastSorted != key) {
+                this.activeCols[this.lastSorted]._sorted = &#x27;none&#x27;;
+            }
+            var reverse = (col._sorted == &#x27;asc&#x27; ? -1 : 1);
+            this.data(this.data().sort(function (a, b) {
+                a = a[key];
+                b = b[key];
+                return (a == b ? 0 : (a &lt; b ? -1 : 1) * reverse);
+            }));
+            col._sorted = (reverse &gt; 0 ? &#x27;asc&#x27; : &#x27;desc&#x27;);
+            this.lastSorted = key;
+            m.render(this._tableEl, mc.Datatable.contentsView(this));
+        };
+
+        /**
+        Responds to clicks on data cells and resolves the arguments to pass to the listener.
+        
+        @method onCellClick
+        @param target {DOM node} DOM node that was clicked.
+        @private
+        */
+        this.onCellClick = function (target) {
+            while (target.nodeName != &#x27;TD&#x27; &amp;&amp; target.nodeName != &#x27;TABLE&#x27;) target = target.parentNode;
+            if (target.nodeName == &#x27;TABLE&#x27;) return;
+            
+            var colIndex = target.cellIndex,
+                col = this.dataRow[colIndex],
+                rowIndex = target.parentNode.sectionRowIndex,
+                row = this.data()[rowIndex];
+            
+            m.startComputation();
+            var ret = this.config.onCellClick.call(this, row[col.key], row, col);
+            m.endComputation();
+            return ret;
+        };
+        
+        /**
+        Event listener for the click event on the TABLE element
+        
+        @method onclick
+        @param e {DOM Event} Event object for the click event.
+        @private
+        */
+
+        this.onclick = function (e) {
+            var target = e.target;
+            if (target.nodeName == &#x27;I&#x27; &amp;&amp; /\bfa\-sort/.test(target.className)) return this.sort(target);
+            if (typeof this.config.onCellClick == &#x27;function&#x27;) {
+                return this.onCellClick(target);
+            }
+        }.bind(this);
+
+        /**
+        Utility method to set the &#x60;width&#x60; attribute on a DOM Node if a valid width is found.
+        
+        @method setWidth
+        @param attrs {Object} Object to add the &#x60;width&#x60; property to, if any found
+        @param width {Any} Either a number, which is assumed in pixels or a CSS width specification
+        @private
+        */
+        this.setWidth = function (attrs, width) {
+            if (!width) return;
+            if (/^\d+$/.test(width)) width += &#x27;px&#x27;;
+            if (!attrs.style) attrs.style = &#x27;&#x27;;
+            if (width) attrs.style += &#x27;width:&#x27; + width + &#x27;;&#x27;;
+        };
+    },
+    /**
+    Main view for the component. Produces the TABLE element.
+    
+    @method view
+    @param ctrl {Controller} Instance of the controller that will handle this view
+    @param [options] {Object} Display options, including:
+    @param options.caption {String} caption to be shown in along the datatable.
+    @param options.width {Integer | CSS width spec} sets the width of the table.  If a number, it will be assumed to be in pixels. 
+    @param options.classNames {Object} overrides for various CSS class names:
+    @param options.classNames.table=&#x27;datatable&#x27; {String} class name for the table element.
+    @param options.classNames.even=&#x27;even&#x27; {String} class name for the TR element of even-numbered rows.
+    @param options.classNames.odd=&#x27;odd&#x27; {String} class name for the TR element of odd-numbered rows.
+    @param options.classNames.sorted=&#x27;sorted&#x27; {String} class name for the TH and TD elements of the currently sorted column.
+    @return {Object} Mithirl view description.
+    */
+    view: function (ctrl, options) {
+        var cols = ctrl.cols;
+        ctrl.viewOptions = options;
+
+        if (!ctrl.data()) {
+            return m(&#x27;div&#x27;, &#x27;Sorry, no data to display&#x27;);
+        }
+        options = options || {};
+        options.classNames = options.classNames || {};
+
+        var attrs = {
+            class: options.classNames.table || &#x27;datatable&#x27;,
+            config: function (el, isOld) {
+                if (isOld) return;
+                el.addEventListener(&#x27;click&#x27;, ctrl.onclick);
+                ctrl._tableEl = el;
+                m.render(el,  mc.Datatable.contentsView(ctrl));
+            }
+
+        };
+
+        ctrl.setWidth(attrs, options.width);
+
+        return m(
+            &#x27;table&#x27;,
+            attrs
+        );
+    
+         
+    },
+    
+    /**
+    Provides the contents of the table.
+    @method contentsView
+    @param ctrl {Controller} Controller instance
+    @return {Object} Mithirl view description.
+    @private
+    */
+    contentsView: function (ctrl) {
+        var cols = ctrl.cols,
+            options = ctrl.viewOptions;
+        return [
+            this.headView(ctrl, cols, options),
+            this.bodyView(ctrl, cols, options, ctrl.data()),
+            this.captionView(ctrl, options)
+        ];
+    },
+        
+    /**
+    Provides the THEAD element of the table.
+    @method headView
+    @param ctrl {Controller} Controller instance
+    @param cols {Object} Columns definition
+    @param options {Object} Configuration options from the view
+    @return {Object} Mithirl view description.
+    @private
+    */
+    headView: function (ctrl, cols, options) {
+        var matrix = [],
+            rowNum = 0,
+            dataRow = [];
+        var calcDepth = function (maxDepth, col) {
+            var depth = 0;
+            if (!matrix[rowNum]) {
+                matrix[rowNum] = [];
+            }
+            matrix[rowNum].push(col);
+            if (col.children) {
+                col._colspan = col.children.length;
+                rowNum++;
+                depth = col.children.reduce(calcDepth, 0) + 1;
+                rowNum--;
+                depth = Math.max(maxDepth, depth);
+            } else {
+                dataRow.push(col);
+            }
+            col._depth = depth;
+            return depth;
+        };
+
+
+
+        var maxDepth = cols.reduce(calcDepth, 0);
+        ctrl.dataRow = dataRow;
+        var activeCols = {};
+        dataRow.forEach(function (col) {
+            activeCols[col.key] = col;
+        });
+        ctrl.activeCols = activeCols;
+
+        var buildHeaderRow = function (row, rowNum) {
+            var buildHeaderCell = function (col) {
+                var attrs = {};
+                if (col._colspan &amp;&amp; col._colspan &gt; 1) attrs.colspan = col._colspan;
+                if (col.class) attrs.class = col.class; 
+                if (!col._depth) {
+                    attrs[&#x27;data-colKey&#x27;] = col.key;
+                    ctrl.setWidth(attrs, col.width);
+                    if (rowNum &lt; maxDepth) attrs.rowspan = maxDepth - rowNum + 1;
+                    if (col._sorted &amp;&amp; col._sorted != &#x27;none&#x27;) attrs.class = options.classNames.sorted || &#x27;sorted&#x27;;
+                }
+
+                return m(
+                    &#x27;th&#x27;,
+                    attrs, [
+                        (!col._depth &amp;&amp; col.sortable ? m(
+                            &#x27;i.fa&#x27;, {
+                                class: {
+                                    asc: &#x27;fa-sort-asc&#x27;,
+                                    desc: &#x27;fa-sort-desc&#x27;,
+                                    none: &#x27;fa-sort&#x27;
+                                }[col._sorted || &#x27;none&#x27;]
+                            }
+                        ) : &#x27;&#x27;),
+                        m.trust(&#x27; &#x27;),
+                        col.label || col.key
+                    ]
+                );
+            };
+
+            return m(
+                &#x27;tr&#x27;,
+                row.map(buildHeaderCell)
+            );
+        };
+        return m(&#x27;thead&#x27;, matrix.map(buildHeaderRow));
+    },
+
+
+    /**
+    Provides the TBODY element of the table.
+    @method bodyView
+    @param ctrl {Controller} Controller instance
+    @param cols {Object} Columns definition
+    @param options {Object} Configuration options from the view
+    @param data {Array of Objects} Data to be rendered.
+    @return {Object} Mithirl view description.
+    @private
+    */
+    bodyView: function (ctrl, cols, options, data) {
+
+        var buildDataRow = function (row, rowIndex) {
+            var buildDataCell = function (col) {
+                var value = row[col.field || col.key],
+                    attrs = {};
+
+                if (typeof col.formatter == &#x27;function&#x27;) {
+                    value = col.formatter.call(ctrl, value, row, col, attrs);
+                }
+                if (!attrs.class) attrs.class = &#x27;&#x27;;
+                if (col._sorted &amp;&amp; col._sorted != &#x27;none&#x27;) attrs.class += &#x27; &#x27; + (options.classNames.sorted || &#x27;sorted&#x27;);
+                if (col.class) attrs.class += &#x27; &#x27; + col.class;
+
+                if (!attrs.class) delete attrs.class;
+                return m(
+                    &#x27;td&#x27;,
+                    attrs,
+                    value
+                );
+            };
+            var recordId = ctrl.config.recordId;
+            return m(
+                &#x27;tr&#x27;, {
+                    &#x27;data-record-id&#x27;: (recordId ? row[recordId] : rowIndex),
+                    class: (rowIndex &amp; 1 ? options.classNames.odd || &#x27;odd&#x27; : options.classNames.even || &#x27;even&#x27;)
+                },
+                ctrl.dataRow.map(buildDataCell)
+            );
+        };
+        return m(&#x27;tbody&#x27;, data.map(buildDataRow));
+    },
+    /**
+    Provides the CAPTION element of the table.
+    @method captionView
+    @param ctrl {Controller} Controller instance
+    @param options {Object} Configuration options from the view
+    @return {Object} Mithirl view description.
+    @private
+    */        
+    captionView: function (ctrl, options) {
+        if (options.caption) return m(&#x27;caption&#x27;, options.caption);
+    },
+};
+    </pre>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>
