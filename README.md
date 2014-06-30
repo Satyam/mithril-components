@@ -35,8 +35,8 @@ A working example, if any, is located at ```public/tableResponsive.html```.
 Supports searching, remote data, and infinite scrolling. jQuery based.
 - ```table``` - Simple table.
 - ```tableResponsive``` - Responsive table.
-- ```datatable``` - Table with sortable columns, AJAX population 
-and multi-row headings.
+- ```datatable``` - Table with sortable columns, AJAX population, 
+row selection and multi-row, nested headings.
 - ```imageResponsive``` - [Responsive image polyfill] 
 (https://github.com/scottjehl/picturefill)  for < picture > and more.
 - ```tabs``` - Tab control. Renders active view. Routing via m.route().
@@ -49,6 +49,9 @@ They are useful for large tables, large lists, infinite scrolling,
 deferring rendering of below-the-fold content, and parallax sites.
 
 - ```occlusionList``` - Simple list, rendering only what is visible.
+- ```occlusionTable``` - Table which scrolls vertically and horizontally.
+Optional header rows always displayed. Pinned columns always appear.
+Responsive to width changes from CSS media queries.
 
 ## Mixins
 Mixin ```ValidationMixin``` resides in ```mixins/ValidationMixins/```.

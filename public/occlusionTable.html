@@ -1,61 +1,123 @@
 <!doctype html>
 <html>
 <head>
-    <style>
-        ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            top: 0;
-        }
+  <link href="../components/occlusionTable/occlusionTable.css" rel="stylesheet" type="text/css">
+  <style>
+    /* clippedTable ========================================================= */
+    /* main configurable styling */
+    div#table0, div#table1, div#table2 {
+      height: 250px !important;
+      width: 750px !important;
+    }
+    @media all and (max-width: 800px) {
+      div#table0, div#table1, div#table2 {
+        width: 650px !important;
+      }
+    }
+    @media all and (max-width: 700px) {
+      div#table0, div#table1, div#table2 {
+        width: 450px !important;
+      }
+    }
 
-        ul li {
-            background-color: #f0f0f0;
-            margin-bottom: 1px;
-            padding-top: 7px;
-            padding-left: 20px;
-            height: 30px;
-        }
-    </style>
+    div.mc-clipped-table-pinned div.scrollable {
+      margin-left:35%;
+    }
+    div.mc-clipped-table-pinned div.pinned {
+      width: 35%;
+    }
+  </style>
 </head>
 <body>
-<h1>scroll</h1>
+<h1>occlusionTable</h1>
 <script src="js/vendor/mithril.js"></script>
 <script src="js/vendor/jquery.js"></script>
 <script src="../components/utils/mcUtils.js"></script>
 <script src="../components/occlusionTable/occlusionTable.js"></script>
 <script>
+  function makeTable (cols) {
+    var t = [ ['Header 1 aaaaaaaaaa', 'Header 2', 'Header 3', 'Header 4', 'Header 5', 'Header 6', 'Header 7', 'Header 8', 'Header 9', 'Header 10'].slice(0, cols - 1) ];
+    for (var i = 1; i < 501; i += 1) {
+      var r = [];
+      for (var j = 0; j <= cols; j += 1) {
+        r.push('row ' + i + ' cell ' + j + (j === 0 ? ' aaaaaaaaaa' : ''));
+      }
+      t.push(r);
+    }
+    return t;
+  }
+
   app = {
     // model
-    table: m.prop(
-        (function () {
-          var t = [ ['Header 1 aaaaaaaaaa', 'Header 2', 'Header 3', 'Header 4', 'Header 5', 'Header 6', 'Header 7'] ];
-          for (var i = 1; i <= 500; i += 1) {
-            var r = [];
-            for (var j = 1; j <= 7; j += 1) {
-              r.push('row ' + i + 'cell ' + j + (j === 1 ? 'aaaaaaaaaa' : ''));
-            }
-            t.push(r);
-          }
-          console.log(t);
-          return t;
-        }())
-    ),
+    table0: m.prop(makeTable(6)),
+    table1: m.prop(makeTable(11)),
 
     // app
     controller: function () {
-      this.ctrlTable = new mc.occlusionTable.controller(app.table, m.prop(1));
+      this.ctrlTable0 = new mc.occlusionTable.controller(app.table0, m.prop(1));
+      this.ctrlTable1 = new mc.occlusionTable.controller(app.table1, m.prop(1));
+      this.ctrlTable2 = new mc.occlusionTable.controller(app.table1, m.prop(1), m.prop(1));
     },
     view: function (ctrl) {
-      return mc.occlusionTable.view(ctrl.ctrlTable, m.prop(250), m.prop('750px'),
-          {_wrapper: '.wrapperSelector', _parent: '.parentSelector', _heading: '.headingSelector', _tr: '.trSelector', _odd: '.oddSelector', _even: '.evenSelector'},
-          {_wrapper: {wrapperAttr: ''},  _parent: {parentAttr: ''},  _heading: {style:{backgroundColor:'Aqua', height: '40px'}},
-            _tr: {trAttr: ''},  _odd: {style:{backgroundColor:'LightGreen'}},  _even: {style:{backgroundColor:'Khaki'}},
-            '4': {style:{backgroundColor:'Red'}}
-          }
-      );
+      return [
+        m('h3', 'Narrow browser window to see tables react twice to width reduction.'),
+        m('p'),
+        mc.occlusionTable.view(ctrl.ctrlTable0, null, null,
+            {_wrapper: '#table0', _parent: '.parentSelector', _heading: '.headingSelector',
+              _tr: '.trSelector', _odd: '.oddSelector', _even: '.evenSelector',
+              '4': '.row4Selector'
+            },
+            {_wrapper: {wrapperAttr: ''},  _parent: {parentAttr: ''},  _heading: {style:{backgroundColor:'Aqua', height: '40px'}},
+              _tr: {trAttr: ''},  _odd: {style:{backgroundColor:'LightGreen'}},  _even: {style:{backgroundColor:'Khaki'}},
+              '4': {style:{backgroundColor:'Red'}}
+            }
+        ),
+        m('p'),
+        mc.occlusionTable.view(ctrl.ctrlTable1, null, null,
+            {_wrapper: '#table1', _parent: '.parentSelector', _heading: '.headingSelector',
+              _tr: '.trSelector', _odd: '.oddSelector', _even: '.evenSelector',
+              '4': '.row4Selector'
+            },
+            {_wrapper: {wrapperAttr: ''},  _parent: {parentAttr: ''},  _heading: {style:{backgroundColor:'Aqua', height: '40px'}},
+              _tr: {trAttr: ''},  _odd: {style:{backgroundColor:'LightGreen'}},  _even: {style:{backgroundColor:'Khaki'}},
+              '4': {style:{backgroundColor:'Red'}}
+            }
+        ),
+        m('p'),
+        mc.occlusionTable.view(ctrl.ctrlTable2, null, null,
+            {_wrapper: '#table2', _parent: '.parentSelector', _heading: '.headingSelector',
+              _tr: '.trSelector', _odd: '.oddSelector', _even: '.evenSelector',
+              '4': '.row4Selector'
+            },
+            {_wrapper: {wrapperAttr: ''},  _parent: {parentAttr: ''},  _heading: {style:{backgroundColor:'Aqua', height: '40px'}},
+              _tr: {trAttr: ''},  _odd: {style:{backgroundColor:'LightGreen'}},  _even: {style:{backgroundColor:'Khaki'}},
+              '4': {style:{backgroundColor:'Red'}}
+            }
+        )
+      ];
     }
   };
+
+  /* reposnsiveness not working yet
+  // browser support, IE10+: http://caniuse.com/matchmedia
+  // polyfills: http://flippinawesome.org/2014/03/24/using-media-queries-in-javascript/
+  console.log('windows.matchMedia=', !!window.matchMedia);
+  var mq = window.matchMedia('(max-width: 760px)');
+  console.log('max 760px=', mq.matches);
+
+  mq.addListener(function(changed) {
+    console.log('========== media change');
+    if(changed.matches) {
+      // the width of browser is more then 760px
+    } else {
+      // the width of browser is less then 760px
+    }
+    alert('media change')
+    app.mediaChange = true;
+    m.startComputation();
+    m.endComputation();
+  });
+  */
 
   m.module(document.body, app);
 </script>

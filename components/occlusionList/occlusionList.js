@@ -11,11 +11,18 @@ mc.occlusionList = {
     this.scrollTop = 0;
     this.scrollHeight = 0;
 
+    //todo put these fcns into prototype
+
+    this.getElSize = function (el) {
+      var props = document.defaultView.getComputedStyle(el, '');
+      return [parseFloat(props.getPropertyValue('height')), parseFloat(props.getPropertyValue('width'))];
+    };
+
     this.setPxPerItem = function (el) {
-      var sizes = mc.utils.getComputedSize(el);
-      if (sizes.pxPerItem) {
+      var height = self.getElSize(el)[0];
+      if (height) {
         self.isPxPerItemComputed = true;
-        self.pxPerItem = sizes.pxPerItem;
+        self.pxPerItem = height;
         self.contentsHeight = self.items.length * self.pxPerItem;
         m.redraw();
       }
@@ -54,10 +61,12 @@ mc.occlusionList = {
         // list
         m('ul' + (selectors._parent || ''), attrs._parent || {},
           ctrl.items.slice(begin, begin + lines).map(function (item, i) {
-            return m('li' + (selectors._item || ''),
-              mc.utils.extend({}, attrs._items, {
+            var attr = mc.utils.extend({}, attrs._items || {}, {
                 config: !ctrl.isPxPerItemComputed && i === 0 ? ctrl.setPxPerItem : null
-              }),
+              });
+            attr.style = mc.utils.extend({}, attr.style || {}, {'white-space': 'nowrap'});
+
+            return m('li' + (selectors._item || ''), attr,
               item);
           })
         )
