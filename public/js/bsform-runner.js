@@ -17,7 +17,7 @@ var app = {
 	view: function (ctrl) {
 		return m('div.container-fluid', m('div.row', [
 			m('div.col-md-5',
-				mc.BootstrapForm.form(ctrl, {
+				mc.BootstrapForm.form({
 					style: 'border: thin solid gray;padding:1em',
 					model: ctrl.data,
 					//layout: 'horizontal',
@@ -60,6 +60,7 @@ var app = {
  						label: 'T-shirt size',
  						name: 'size',
  						options: [
+							'Other',
  							{label: 'Extra-small', value:'XS'},
  							{label: 'Small', value:'S'},
  							{label: 'Medium', value:'M'},
@@ -71,7 +72,8 @@ var app = {
 			),
 			m('div.col-md-2'),
 			m('div.col-md-5', [
-				mc.BootstrapForm.static({
+				mc.BootstrapForm({
+					type: 'static',
 					model: ctrl.data,
 					label: 'First Name',
 					name: 'firstName'
