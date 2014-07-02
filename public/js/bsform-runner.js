@@ -15,8 +15,6 @@ var app = {
 	},
 
 	view: function (ctrl) {
-		return m('input',{type:'checkbox', checked: false});
-		
 		return m('div.container-fluid', m('div.row', [
 			m('div.col-md-5',
 				mc.BootstrapForm.form({
@@ -27,7 +25,7 @@ var app = {
 					inputGridSize: 'col-sm-9'
 				}, [
 					{
-						type:'fieldset',
+						type: 'fieldset',
 						label: 'person',
 						children: [
 
@@ -56,20 +54,35 @@ var app = {
 						name: 'lorenIpsum',
 						rows: 5
 					},
-					
- 					{
+
+					{
 						type: 'radio',
- 						label: 'T-shirt size',
- 						name: 'size',
- 						options: [
+						label: 'T-shirt size',
+						name: 'size',
+						options: [
 							'Other',
- 							{label: 'Extra-small', value:'XS'},
- 							{label: 'Small', value:'S'},
- 							{label: 'Medium', value:'M'},
- 							{label: 'Large', value:'L'},
- 							{label: 'Extra-large', value:'XL'}
- 						]
- 					}
+							{
+								label: 'Extra-small',
+								value: 'XS'
+							},
+							{
+								label: 'Small',
+								value: 'S'
+							},
+							{
+								label: 'Medium',
+								value: 'M'
+							},
+							{
+								label: 'Large',
+								value: 'L'
+							},
+							{
+								label: 'Extra-large',
+								value: 'XL'
+							}
+						]
+					}
 				])
 			),
 			m('div.col-md-2'),
@@ -100,7 +113,53 @@ var app = {
 					model: ctrl.data,
 					label: 'T-shirt size',
 					name: 'size'
-				})
+				}),
+				mc.BootstrapForm.fieldset('buttons', [
+					{
+						type: 'button',
+						style: 'primary',
+						label: 'primary',
+						onclick: function (e) {
+							alert('clicked on: ' + e.target.innerHTML);
+						}
+					},
+					{
+						type: 'button',
+						style: 'primary',
+						label: 'primary (anchor)',
+						href: '#',
+						onclick: function (e) {
+							alert('clicked on: ' + e.target.innerHTML);
+						}
+					},
+					{
+						type: 'button',
+						style: 'warning',
+						size: 'lg',
+						active: true,
+						label: 'warning, large, active',
+						onclick: function (e) {
+							alert('clicked on: ' + e.target.innerHTML);
+						}
+					},
+					{
+						type: 'button',
+						style: 'danger',
+						submit: true,
+						label: 'submit, danger',
+						config: m.route
+					},
+					{
+						type: 'button',
+						style: 'link',
+						label: 'link',
+						onclick: function (e) {
+							alert('clicked on: ' + e.target.innerHTML);
+						}
+					}
+					
+				])
+
 			])
 		]));
 	}

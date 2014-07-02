@@ -20,15 +20,28 @@ mc.BootstrapForm = (function () {
 	// copies all the properties from config into attrs except for those in skip
 	// returns the attributes for further chaining
 	// Beware!!, it modifies the initial attrs
-	var mergeAttrs = function (attrs, config, skip) {
+	var mergeAttrsExcept = function (attrs, config, skip) {
 		for (var name in config) {
-			if ((name == 'class' || name == 'className') && skip.indexOf('class') == -1) {
-				addClass(attrs, config[name]);
+			if (skip.indexOf(name) == -1) {
+				if (name == 'class') {
+					addClass(attrs, config[name]);
+				} else attrs[name] = config[name];
 			}
-			if (skip.indexOf(name) == -1) attrs[name] = config[name];
 		}
 		return attrs;
 	};
+	
+	// copies only the given attributes
+	// Beware!!, it modifies the initial attrs
+	var mergeSomeAttrs = function (attrs, config, which) {
+		for (var name in which) {
+			if (name == 'class') {
+				addClass(attrs, config[name]);
+			} else  attrs[name] = config[name];
+		}
+		return attrs;
+	};
+			
 
 	var addHelp = function (children, help) {
 		if (help) {
@@ -54,11 +67,11 @@ mc.BootstrapForm = (function () {
 			var id = uid(config.id);
 
 			// merges attributes from config, except for those listed
-			var attrs = mergeAttrs({
+			var attrs = mergeAttrsExcept({
 				// if type is not password or any of the new HTML5 input types, it just uses text.
 				type: config.type || 'text',
 				id: id
-			}, config, ['id', 'value', 'label', 'help', 'model']);
+			}, config, ['id', 'value', 'label', 'help', 'model', 'class']);
 
 
 			// If there is a model associated to the form and the control has a name
@@ -82,7 +95,7 @@ mc.BootstrapForm = (function () {
 			}
 
 			// return the assembled elements enclosed in a div.
-			return m('div.form-group', [
+			return m('div.form-group', addClass({}, config.class), [
 				m(
 					'label.control-label',
 					addClass({
@@ -100,10 +113,10 @@ mc.BootstrapForm = (function () {
 
 		checkbox: function (config, formConfig) {
 			config = config || {};
-			var iAttrs = mergeAttrs({
+			var iAttrs = mergeAttrsExcept({
 				type: 'checkbox'
 			}, config, ['type', 'class', 'inline', 'value', 'checked', 'label', 'model']);
-			var dAttrs = mergeAttrs({}, config, ['value', 'inline', 'checked', 'label', 'name', 'type', 'model']);
+			var dAttrs = addClass({}, config.class);
 
 			// If there is a model associated to the form and the control has a name
 			// do a two way binding to it
@@ -142,10 +155,10 @@ mc.BootstrapForm = (function () {
 		},
 		radio: function (config, formConfig) {
 			config = config || {};
-			var iAttrs = mergeAttrs({
+			var iAttrs = mergeAttrsExcept({
 				type: 'radio'
-			}, config, ['class', 'inline', 'value', 'checked', 'label', 'options', 'model']),
-				dAttrs = mergeAttrs({}, config, ['type', 'value', 'inline', 'checked', 'label', 'options', 'name', 'model']);
+			}, config, ['class', 'inline', 'value', 'checked', 'label', 'options', 'model', 'type']),
+				dAttrs = addClass({}, config.class);
 
 
 			iAttrs.name = uid(iAttrs.name);
@@ -205,26 +218,41 @@ mc.BootstrapForm = (function () {
 
 		static: function (config, formConfig) {
 			config = config || {};
-			var attrs = (config.class ? {
-				class: config.class
-			} : {});
 
 			var model = config.model || formConfig.model,
 				name = config.name;
 
-			return m('div.form-group', attrs, addHelp([
+			return m('div.form-group', addClass({},config.class) , addHelp([
 				m('label.control-label', config.label),
-				m('p.form-control-static', (model && name ? model[name] : config.value))
+				m(
+					'p.form-control-static', 
+					mergeAttrsExcept({}, config, ['class', 'model', 'value']),
+					(model && name ? model[name] : config.value)
+				)
 			]));
 		},
 
 		fieldset: function (config, formConfig, children) {
 			config = config || {};
-			return m('fieldset.form-group', [
+			return m('fieldset.form-group', mergeAttrsExcept({},config, ['label','children', 'type']),[
 				m('legend', config.label),
 				processChildren(config, formConfig, children),
 				addHelp(null, config.help)
 			]);
+		},
+		button: function (config, formConfig) {
+			config = config || {};
+			var attrs = mergeAttrsExcept({}, config, ['style', 'size', 'block', 'active', 'submit', 'label']);
+			addClass(attrs, 'btn-' + (config.style || 'default'));
+			if (config.size) addClass(attrs, 'btn-' + config.size);
+			if (config.block) addClass(attrs, 'btn-block');
+			if (config.active) addClass(attrs, 'active');
+			if (config.submit) attrs.type = 'submit';
+			return [
+				m((config.href ? 'a' : 'button') + '.btn', attrs, config.label),
+				' '
+			];
+			
 		}
 	};
 
@@ -274,7 +302,7 @@ mc.BootstrapForm = (function () {
 			formConfig = {};
 		}
 		var attrs = {};
-		mergeAttrs(attrs, formConfig, ['layout', 'model', 'labelGridSize', 'inputGridSize', 'children']);
+		mergeAttrsExcept(attrs, formConfig, ['layout', 'model', 'labelGridSize', 'inputGridSize', 'children']);
 		if (formConfig.layout) addClass(attrs, ' form-' + formConfig.layout);
 
 		return m('form', attrs, processChildren(formConfig, formConfig, children));
@@ -294,6 +322,9 @@ mc.BootstrapForm = (function () {
 			{},
 			children
 		);
+	};
+	bsf.button = function (config) {
+		return formControls.button(config, {});
 	};
 	return bsf;
 })();

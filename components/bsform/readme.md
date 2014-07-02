@@ -140,7 +140,7 @@ The configuration object always accept a `type` property.  This may be redundant
 The developer may add configuration attributes to those listed.  After processing the arguments it knows about (and documented below), it applies whatever attributes might be left to the core DOM element of the component, for example, the `<INPUT>` element not the `<LABEL>`.   Such is the case of the `style` attribute in the form in the [top example](#usage).  Thus, the `action`or `method` attributes could be added to the form or the `disabled` to almost any control.
 
 <a name="classname"/>
-**TODO** The `class` configuration attribute, if present, will always be added to the outermost element of the component, usually a `<DIV>` after those mandated by Bootstrap.  The designer needs to add the appropriate qualifier to affect the individual elements within, i.e.: the `<LABEL>` or `<INPUT>`.
+The `class` configuration attribute, if present, will always be added to the outermost element of the component, usually a `<DIV>` after those mandated by Bootstrap.  The designer needs to add the appropriate qualifier to affect the individual elements within, i.e.: the `<LABEL>` or `<INPUT>`.
 
 <a name="binding"/>
 ###Binding to data###
@@ -156,6 +156,8 @@ If the `model` and `name` properties are set, it expects `model` to be an object
 If the component is enclosed within a `form` component and that form has the `model` property set, then the contained components will inherit that property.  Such is the case in the [example at the top](#usage).  
 
 The `model` is expected to be an object, not a property getter/setter.  
+
+If two-way data binding is active, the `onchange` attribute on an input component or the `onclick` on the others will be ignored.
 
 ###Containers###
 
@@ -185,14 +187,17 @@ The `mc.BootstrapForm.form(config, children)` component expects the following ar
 
 ####Fieldset####
 
-The `mc.BootstrapForm.fieldset(label, children)` compnent expects the following arguments:
+The `mc.BootstrapForm.fieldset(label, children)` component expects the following arguments:
 
-1. `label`, which can be either:
-	* {String} If a string, it will be assumed to be the text for the `<LEGEND>` element.
-	* {Object} Otherwise, it should be a regular configuration object.  If that is the case, it may contain:
-		* `label` {String} the text for the `<LEGEND>` element
-		* `children` {Various} The contents of this form as described [above](#children).
-2. `children` {Various} The contents of this form as described [above](#children). This can be ommitted if the `children` configuration property is set.
+1. `label`{String} The text for the `<LEGEND>` element.
+2. `children` {Various} The contents of this fieldset as described [above](#children). This can be ommitted if the `children` configuration property is set.
+
+Alternatively, it can be called using `mc.BootstrapForm.fieldset(config, children)` where:
+
+1. `config` {Object} configuration object containing:
+	* `label` {String} the text for the `<LEGEND>` element
+	* `children` {Various} The contents of this fieldset as described [above](#children).
+2. `children` {Various} The contents of this fieldset as described [above](#children). This can be ommitted if the `children` configuration property is set.
 
 ###Simple Controls###
 
@@ -233,6 +238,22 @@ The `mc.BootstrapForm.radio(config)` creates a set of radio buttons.  It expects
 		* `label` {String} Text to be shown along the radio button.
 		* `value` {String} Value that this radio button represents.  If the value obtained from the source of data (as described [above](#binding)) matches this `value`, the radio button will be active.  When the button corresponding to this option is clicked, this is the value that will be saved. 
 		
+
+####Select####
+
+**TODO**
+The `mc.BootstrapForm.select(config)` creates a dropdown select element.  It expects the following  argument:
+
+1. `config` {Object} Configuration object containing:
+	* `value`, `model` and/or `name` as described [above](#binding)
+	* `name` {String} Besides the usage described in the previous item, if a name for the collection is not provided, one will be generated so as to make the radio buttons exclusive of one another.
+	* `help`  {String} Help text to be shown below the input control ([see](http://getbootstrap.com/css/#forms-help-text))
+	* `multi` {Boolean} Allows for multiple item selection. If the `multi` selection is set, the result will be an array of the values of the items selected.
+	* `rows` {Integer} If present and greater than 1, a scrollable list, instead of a dropdown, will be produced.
+	* `options` {Array}, one entry per radio button, in the order expected to be shown. It may be a list of values or objects or a mix of the two.  If it is a simple value, it is assumed that the label and the value match, otherwise, they can be specified separately by using an object which should contain:
+		* `label` {String} Text to be shown along the radio button.
+		* `value` {String} Value that this radio button represents.  If the value obtained from the source of data (as described [above](#binding)) matches this `value`, the radio button will be active.  When the button corresponding to this option is clicked, this is the value that will be saved. 
+
 ####Static####
 
 The `mc.BootstrapForm.static(label, value)` component simply shows a fixed text instead of an actual input control  [see](http://getbootstrap.com/css/#forms-controls-static). It expects the following arguments:
@@ -248,6 +269,20 @@ Alternatively, it can be called as `mc.BootstrapForm.static(config)` where the a
 	* `help` {String} Help text to be shown below the input control ([see](http://getbootstrap.com/css/#forms-help-text))
 
 ####Button####
+
+The `mc.BootstrapForm.button(config)` component provides an assortment of buttons.
+
+1. `config` {Object} Configuration object containing the following properties:
+	* `label` {String} Label to be shown in the button.
+	* `style` {String} Any of `default`, `primary`, `success`, `info`, `warning`, `danger` or `link`.  Defauts to (obviously) `default` [see](http://getbootstrap.com/css/#buttons-options)
+	* `size` {String} Any of `lg`, `sm` or `xs` [see](http://getbootstrap.com/css/#buttons-sizes)
+	* `block` {Boolean} Makes the button take the full available width [see](http://getbootstrap.com/css/#buttons-sizes)
+	* `active` {Boolean} Makes the button look pressed down [see](http://getbootstrap.com/css/#buttons-active)
+	* `submit` {Boolean} The button will be of type `submit`
+	* `href` {String} The button will actually be created as an anchor `<A>` element with its `href` attribute set to this value.
+	
+As with any other unknown attribute, properties not listed above will be passed untouched.  Of particular interest to a button are the `onclick` and `disabled` properties as well as the special `config` Mithril pseudo-property, often set to `m.route` for routing purposes.
+
 
 **todo**
 
