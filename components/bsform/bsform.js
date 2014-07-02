@@ -218,44 +218,44 @@ mc.BootstrapForm = (function () {
 			]));
 		},
 
-		fieldset: function (config, formConfig, contents) {
+		fieldset: function (config, formConfig, children) {
 			config = config || {};
 			return m('fieldset.form-group', [
 				m('legend', config.label),
-				processContents(config, formConfig, contents),
+				processChildren(config, formConfig, children),
 				addHelp(null, config.help)
 			]);
 		}
 	};
 
-	var processContents = function (config, formConfig, contents) {
-		var children = [];
-		(contents || config.contents).forEach(function (content) {
+	var processChildren = function (config, formConfig, children) {
+		var _children = [];
+		(children || config.children).forEach(function (content) {
 			switch (typeof content) {
 			case 'function':
 				content = content(config, formConfig);
-				if (content) children.push(content);
+				if (content) _children.push(content);
 				break;
 			case 'object':
 				if (content.tag && content.attrs) {
 					// Then it is the result of a call to m()
-					children.push(content);
+					_children.push(content);
 				} else {
 					var type = content.type;
 					if (!formControls[type]) type = 'input';
 					if (type == 'textarea') {
 						type = 'input';
-						if (!content.rows) contents.rows = 5;
+						if (!content.rows) children.rows = 5;
 					}
-					children.push(formControls[type](content, formConfig || {}));
+					_children.push(formControls[type](content, formConfig || {}));
 				}
 				break;
 			default:
-				if (content) children.push(content);
+				if (content) _children.push(content);
 				break;
 			}
 		});
-		return children;
+		return _children;
 	};
 
 	var bsf = function (config) {
@@ -268,16 +268,16 @@ mc.BootstrapForm = (function () {
 		return formControls[type](config, {});
 	};
 
-	bsf.form = function (formConfig, contents) {
+	bsf.form = function (formConfig, children) {
 		if (Array.isArray(formConfig) || typeof formConfig == 'function') {
-			contents = formConfig;
+			children = formConfig;
 			formConfig = {};
 		}
 		var attrs = {};
-		mergeAttrs(attrs, formConfig, ['layout', 'model', 'labelGridSize', 'inputGridSize', 'contents']);
+		mergeAttrs(attrs, formConfig, ['layout', 'model', 'labelGridSize', 'inputGridSize', 'children']);
 		if (formConfig.layout) addClass(attrs, ' form-' + formConfig.layout);
 
-		return m('form', attrs, processContents(formConfig, formConfig, contents));
+		return m('form', attrs, processChildren(formConfig, formConfig, children));
 	};
 	bsf.input = function (config) {
 		return formControls.input(config, {});
@@ -288,11 +288,11 @@ mc.BootstrapForm = (function () {
 	bsf.static = function (label, value) {
 		return formControls.static(arguments.length==2 ? {label: label, value: value}: label);
 	};
-	bsf.fieldset = function (label, contents) {
+	bsf.fieldset = function (label, children) {
 		return formControls.fieldset(
 			(typeof label == 'string' ? {label: label}: label),
 			{},
-			contents
+			children
 		);
 	};
 	return bsf;

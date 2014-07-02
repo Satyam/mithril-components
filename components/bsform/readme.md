@@ -34,7 +34,7 @@ Usage
 						{
 							type:'fieldset',
 							label: 'person',
-							contents: [
+							children: [
 
 								{
 									type: 'input',
@@ -124,13 +124,20 @@ Sometimes the specific function is easier to use, compare these two:
 
 	mc.BoostrapForm.fieldset('This is the legend', [ /* here goes the contents */ ]);
 	
-	mcBootstrapForm({
+	mc.BootstrapForm({
 		type: 'fieldset',
 		label: 'This is the legend',
-		contents: [ /* here goes the contents */ ]
+		children: [ /* here goes the contents */ ]
 	});
 	
-All components take a configuration attribute as its first and often only argument.  **TODO** All unrecognized attributes will be passed on to the core DOM element of the component.   Such is the case of the `style` attribute in the form in the [top example](#usage).  Since BootstrapForm doesn't know what to do with it, it is directly applied to the form, untouched.
+<a name="config"/>
+###Configuration###
+
+All components take a configuration object as its first and often only argument.  
+
+The configuration object always accept a `type` property.  This may be redundant if the specific function (for example, `mc.BootstrapForm.radio`) but might be useful to override the default type (for example, for inputs of type `password`).  It is, however, required if the components are created using the generic method (`mc.BootstrapForm()`) or when components are nested and only the configuration object for the children are given like in the first [example](#usage).
+
+The developer may add configuration attributes to those listed.  After processing the arguments it knows about (and documented below), it applies whatever attributes might be left to the core DOM element of the component, for example, the `<INPUT>` element not the `<LABEL>`.   Such is the case of the `style` attribute in the form in the [top example](#usage).  Thus, the `action`or `method` attributes could be added to the form or the `disabled` to almost any control.
 
 <a name="classname"/>
 **TODO** The `class` configuration attribute, if present, will always be added to the outermost element of the component, usually a `<DIV>` after those mandated by Bootstrap.  The designer needs to add the appropriate qualifier to affect the individual elements within, i.e.: the `<LABEL>` or `<INPUT>`.
@@ -152,10 +159,10 @@ The `model` is expected to be an object, not a property getter/setter.
 
 ###Containers###
 
-Two containers are provided, a `form` and a `fieldset`.  Both take two arguments, a configuration object and an array of children, th e `contents`.  In both cases, the second argument can be ommited and a `contents` property can be set in the configuration object.
+Two containers are provided, a `form` and a `fieldset`.  Both may take two arguments, a configuration object and an array of `children`.  In both cases, the second argument can be ommited and a `children` property can be set in the configuration object.
 
-<a name="contents"/>
-The `contents` can be any of the following:
+<a name="children"/>
+The `children` can be any of the following:
 
 * An object, corresponding to the configuration object of further components.
 * A call to `m()`.  It is possible to mix BootstrapForm components with regular Mithril elements, for example an `m('hr')`.
@@ -166,32 +173,32 @@ For whatever it might be usefull (doubtful), the function will receive the confi
 
 ####Form####
 
-The `BootstrapForm.form(config, contents)` component expects the following arguments:
+The `mc.BootstrapForm.form(config, children)` component expects the following arguments:
 
 1. `config` {Object} (optional), configuration object, containing:
 	* `model` {Object} Object that holds the data for this form.  It will be propagated to the children, as described [above](#binding).
-	* `contents` {Various} The contents of this form as described [above](#contents). 
+	* `children` {Various} The contents of this form as described [above](#children). 
 	* `layout` {String} Either `inline` or `horizontal` produces a form with its elements placed in [one line](http://getbootstrap.com/css/#forms-inline) or with the labels in the [same line as the fields](http://getbootstrap.com/css/#forms-horizontal).
 	* `labelGridSize` {String} [Grid system spec](http://getbootstrap.com/css/#grid-example-basic) to determine the width of the label, used only and recommended for [horizontal layout](http://getbootstrap.com/css/#forms-horizontal).
 	* `inputGridSize` {String} [Grid system spec](http://getbootstrap.com/css/#grid-example-basic) to determine the width of the input, used only and recommended for [horizontal layout](http://getbootstrap.com/css/#forms-horizontal).
-2. `contents` {Various} The contents of this form as described [above](#contents). This can be ommitted if the `contents` configuration property is set.
+2. `children` {Various} The contents of this form as described [above](#children). This can be ommitted if the `children` configuration property is set.
 
 ####Fieldset####
 
-The `BootstrapForm.fieldset(label, contents)` compnent expects the following arguments:
+The `mc.BootstrapForm.fieldset(label, children)` compnent expects the following arguments:
 
 1. `label`, which can be either:
 	* {String} If a string, it will be assumed to be the text for the `<LEGEND>` element.
 	* {Object} Otherwise, it should be a regular configuration object.  If that is the case, it may contain:
 		* `label` {String} the text for the `<LEGEND>` element
-		* `contents` {Various} The contents of this form as described [above](#contents).
-2. `contents` {Various} The contents of this form as described [above](#contents). This can be ommitted if the `contents` configuration property is set.
+		* `children` {Various} The contents of this form as described [above](#children).
+2. `children` {Various} The contents of this form as described [above](#children). This can be ommitted if the `children` configuration property is set.
 
 ###Simple Controls###
 
 ####Input####
 
-The `BootstrapForm.input(config)` creates a regular `<INPUT>` element.  If the `rows` property is set, it will create a `TEXTAREA` instead. It expects the following  argument:
+The `mc.BootstrapForm.input(config)` creates a regular `<INPUT>` element.  If the `rows` property is set, it will create a `TEXTAREA` instead. It expects the following  argument:
 
 1. `config` {Object} Configuration object containing:
 	* `id` {String} If an id for the element is not provided, one will be generated so as to associate the `<LABEL>` element with the input control via the `for` attribute.
@@ -205,7 +212,7 @@ The `disable`, `placeholder` and `readonly` attributes, mentioned in the [Bootst
 	
 ####Checkbox####
 
-The `BootstrapForm.checkbox(config)` creates a checkbox.  It expects the following  argument:
+The `mc.BootstrapForm.checkbox(config)` creates a checkbox.  It expects the following  argument:
 
 1. `config` {Object} Configuration object containing:
 	* `label` {String} The contents of the `LABEL` element associated to this control.
@@ -215,7 +222,7 @@ The `BootstrapForm.checkbox(config)` creates a checkbox.  It expects the followi
 	
 ####Radio####
 
-The `BootstrapForm.radio(config)` creates a set of radio buttons.  It expects the following  argument:
+The `mc.BootstrapForm.radio(config)` creates a set of radio buttons.  It expects the following  argument:
 
 1. `config` {Object} Configuration object containing:
 	* `value`, `model` and/or `name` as described [above](#binding)
@@ -228,12 +235,12 @@ The `BootstrapForm.radio(config)` creates a set of radio buttons.  It expects th
 		
 ####Static####
 
-The `BootstrapForm.static(label, value)` component simply shows a fixed text instead of an actual input control  [see](http://getbootstrap.com/css/#forms-controls-static). It expects the following arguments:
+The `mc.BootstrapForm.static(label, value)` component simply shows a fixed text instead of an actual input control  [see](http://getbootstrap.com/css/#forms-controls-static). It expects the following arguments:
 
 1. `label` {String} The contents of the `<LABEL>` element associated to this group of radio buttons.
 2. `value` {String} The value to be shown. 
 	
-Alternatively, it can be called as `BootstrapForm.static(config)` where the argument is
+Alternatively, it can be called as `mc.BootstrapForm.static(config)` where the argument is
 
 1. `config` {Object} Configuration object containing:
 	* `label` {String} The contents of the `LABEL` element associated to this control.

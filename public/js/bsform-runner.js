@@ -15,6 +15,8 @@ var app = {
 	},
 
 	view: function (ctrl) {
+		return m('input',{type:'checkbox', checked: false});
+		
 		return m('div.container-fluid', m('div.row', [
 			m('div.col-md-5',
 				mc.BootstrapForm.form({
@@ -27,7 +29,7 @@ var app = {
 					{
 						type:'fieldset',
 						label: 'person',
-						contents: [
+						children: [
 
 							{
 								type: 'input',
