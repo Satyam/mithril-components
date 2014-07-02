@@ -20,26 +20,41 @@ Start the server with ```node app.js``` and point your
 browser to ```http://localhost:3000/public/FormMixin.html``` for example. 
 
 ## Components
-Component ```tableResponsive``` resides in ```components/tableResponsive/```.
-Docs are in the ```readme```.
+
 You may extract the files you need with a build tool,
 or you may use the front-end packaging tool
 [component] (https://github.com/component/component).
 
-A working example, if any, is located at ```public/tableResponsive.html```.
-
 ### UI Components
 
 - ```select``` - Simple select.
+[(Sample usage.)](/public/select.html)
+[(Results.)](/components/select/sample.png)
+[(Source and readme.)](/components/select)
 - ```select2``` - [Select replacement.] (https://github.com/ivaynberg/select2) 
 Supports searching, remote data, and infinite scrolling. jQuery based.
 - ```table``` - Simple table.
+[(Sample usage.)](/public/table.html)
+[(Results.)](/components/table/sample.png)
+[(Source and readme.)](/components/table)
 - ```tableResponsive``` - Responsive table.
+[(Sample usage.)](/public/tableResponsive.html)
+[(Results.)](/components/tableResponsive/sample.png)
+[(Source and readme.)](/components/tableresponsive)
 - ```datatable``` - Table with sortable columns, AJAX population, 
 row selection and multi-row, nested headings.
+[(Sample usage.)](/public/datatable.html)
+[(Results.)](/components/datatable/sample.png)
+[(Source and readme.)](/components/datatable)
 - ```imageResponsive``` - [Responsive image polyfill] 
 (https://github.com/scottjehl/picturefill)  for < picture > and more.
+[(Sample usage.)](/public/imageResponsive.html)
+[(Results.)](/components/imageResponsive/sample.png)
+[(Source and readme.)](/components/imageresponsive)
 - ```tabs``` - Tab control. Renders active view. Routing via m.route().
+[(Sample usage.)](/public/tabs.html)
+[(Results.)](/components/tabs/sample.png)
+[(Source and readme.)](/components/tabs)
 
 #### Occlusion components
 
@@ -49,9 +64,15 @@ They are useful for large tables, large lists, infinite scrolling,
 deferring rendering of below-the-fold content, and parallax sites.
 
 - ```occlusionList``` - Simple list, rendering only what is visible.
+[(Sample usage.)](/public/occlusionList.html)
+[(Results.)](/components/occlusionList/sample.png)
+[(Source and readme.)](/components/occlusionList)
 - ```occlusionTable``` - Table which scrolls vertically and horizontally.
 Optional header rows always displayed. Pinned columns always appear.
 Responsive to width changes from CSS media queries.
+[(Sample usage.)](/public/occlusionTable.html)
+[(Results.)](/components/occlusionTable/sample.jpg)
+[(Source and readme.)](/components/occlusionTable)
 
 ## Mixins
 Mixin ```ValidationMixin``` resides in ```mixins/ValidationMixins/```.

@@ -4,6 +4,8 @@ mc._internals = mc._internals || {};
 mc._internals.redrawScheduled = false;
 
 mc.utils = mc.utils || {};
+
+// extend an object with others
 mc.utils.extend = function extend (to /* arguments */) {
   Array.prototype.slice.call(arguments, 1).forEach(function (obj) {
     if (typeof obj === 'object') {
@@ -11,6 +13,27 @@ mc.utils.extend = function extend (to /* arguments */) {
     }
   });
   return to;
+};
+
+// ensure params are m.prop()
+mc.utils.setParam = function setParam(param, defaultValue) {
+  return typeof param === 'function' ? param : m.prop(typeof param === 'undefined' ? defaultValue : param);
+};
+
+// turn param into something m('', '', child) can consume
+mc.utils.resolveChild = function resolveChild (child) {
+  switch (typeof child) {
+    case 'array':
+      return child;
+    case 'function':
+      return child();
+    case 'number':
+      return child + '';
+    case 'string':
+      return child;
+    default:
+      return child;
+  }
 };
 
 /*
