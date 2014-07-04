@@ -159,6 +159,30 @@ The `model` is expected to be an object, not a property getter/setter.
 
 If two-way data binding is active, the `onchange` attribute on an input component or the `onclick` on the others will be ignored.
 
+###Formatting and parsing###
+
+All data controls may have `formatter` and `parser`.  If they exist they will be used to format the internal value to a form suitable to be shown to the user and to parse the user input prior to store it via two-way binding.   
+
+The `formatter` function should accept a raw value and return a formatted value suitable for display, for example `formatter: function (date) { return date.toLocaleDateString();}`.
+
+The `parser` function should accept the value as read from the input control and return the internal representation for it, for example `parser: Date.parse`.
+
+<a name="validation"/>
+###Validation###
+
+Validation is supported via the `validate` property.   Each field that requires validation must add a `validate` property to is configuration object.   The `validate` object has the following properties:
+
+* `fn` {Function} The validation function, it should accept the value to be validated and return *truish* if valid.  The function will receive the raw value as read from the DOM element, without parsing.
+* `msg` {String} A message to be shown below the input field if the value does not validate. If no message is included, the field will be [highlighted](http://getbootstrap.com/css/#forms-control-validation) with the `.has-error` className but no other information will be available to the user.
+* `args` {Any} Extra arguments that the validator function might require besides the value to validate.  It can be a simple value or an array of values.
+* `valid` {setter/getter} (optional) a property getter/setter that will be set to `true` if the field passes validation.
+
+If a value is invalid, it won't be stored into its associated property or model via [data binding](#binding).
+
+Additionally, the developer may configure a form to keep track of the status of the fields by setting the `valid` property in the configuration object of a form to a property setter/getter.  The property setter/getter will return `true` when all the validators validate their values.  For this feature to work, the individual fields being validated must have their `name` configurtion property set to unique values within each form.   Fields with no `name` nor `validate.fn` will be assumed valid.
+
+Buttons of type `submit` created via `mc.BootstrapForm.button(config)` contained within a form with its `valid` property set, will use that property to disable themselves when there is invalid data.
+
 ###Containers###
 
 Two containers are provided, a `form` and a `fieldset`.  Both may take two arguments, a configuration object and an array of `children`.  In both cases, the second argument can be ommited and a `children` property can be set in the configuration object.
@@ -183,6 +207,8 @@ The `mc.BootstrapForm.form(config, children)` component expects the following ar
 	* `layout` {String} Either `inline` or `horizontal` produces a form with its elements placed in [one line](http://getbootstrap.com/css/#forms-inline) or with the labels in the [same line as the fields](http://getbootstrap.com/css/#forms-horizontal).
 	* `labelGridSize` {String} [Grid system spec](http://getbootstrap.com/css/#grid-example-basic) to determine the width of the label, used only and recommended for [horizontal layout](http://getbootstrap.com/css/#forms-horizontal).
 	* `inputGridSize` {String} [Grid system spec](http://getbootstrap.com/css/#grid-example-basic) to determine the width of the input, used only and recommended for [horizontal layout](http://getbootstrap.com/css/#forms-horizontal).
+	* `valid` {Property getter/setter}  If set and any field within the form has validation enabled, the property will return true when all the validated fields pass validation.
+	* `changed` {Property getter/setter} If set, the property will be set when any field has been changed.
 2. `children` {Various} The contents of this form as described [above](#children). This can be ommitted if the `children` configuration property is set.
 
 ####Fieldset####
@@ -230,6 +256,7 @@ The `mc.BootstrapForm.checkbox(config)` creates a checkbox.  It expects the foll
 The `mc.BootstrapForm.radio(config)` creates a set of radio buttons.  It expects the following  argument:
 
 1. `config` {Object} Configuration object containing:
+	* `label` {String} The contents of the `LABEL` element common for the set of radio buttons.
 	* `value`, `model` and/or `name` as described [above](#binding)
 	* `name` {String} Besides the usage described in the previous item, if a name for the collection is not provided, one will be generated so as to make the radio buttons exclusive of one another.
 	* `help`  {String} Help text to be shown below the input control ([see](http://getbootstrap.com/css/#forms-help-text))
@@ -241,14 +268,14 @@ The `mc.BootstrapForm.radio(config)` creates a set of radio buttons.  It expects
 
 ####Select####
 
-**TODO**
 The `mc.BootstrapForm.select(config)` creates a dropdown select element.  It expects the following  argument:
 
 1. `config` {Object} Configuration object containing:
+	* `label` {String} The contents of the `LABEL` element associated to this control.
 	* `value`, `model` and/or `name` as described [above](#binding)
 	* `name` {String} Besides the usage described in the previous item, if a name for the collection is not provided, one will be generated so as to make the radio buttons exclusive of one another.
 	* `help`  {String} Help text to be shown below the input control ([see](http://getbootstrap.com/css/#forms-help-text))
-	* `multi` {Boolean} Allows for multiple item selection. If the `multi` selection is set, the result will be an array of the values of the items selected.
+	* `multiple` {Boolean} Allows for multiple item selection. If the `multi` selection is set, the result will be an array of the values of the items selected.
 	* `rows` {Integer} If present and greater than 1, a scrollable list, instead of a dropdown, will be produced.
 	* `options` {Array}, one entry per radio button, in the order expected to be shown. It may be a list of values or objects or a mix of the two.  If it is a simple value, it is assumed that the label and the value match, otherwise, they can be specified separately by using an object which should contain:
 		* `label` {String} Text to be shown along the radio button.
@@ -283,8 +310,6 @@ The `mc.BootstrapForm.button(config)` component provides an assortment of button
 	
 As with any other unknown attribute, properties not listed above will be passed untouched.  Of particular interest to a button are the `onclick` and `disabled` properties as well as the special `config` Mithril pseudo-property, often set to `m.route` for routing purposes.
 
-
-**todo**
 
 ####Validation####
 

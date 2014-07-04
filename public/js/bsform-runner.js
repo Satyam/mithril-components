@@ -1,5 +1,5 @@
 /* jshint browser:true */
-/* global m:false,mc:false */
+/* global m:false,mc:false, alert:false */
 
 var app = {
 
@@ -10,8 +10,11 @@ var app = {
 			lastName: 'Doe',
 			active: false,
 			lorenIpsum: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-			size: 'M'
+			size: 'M',
+			sport: ['Rugby', 'Soccer']
 		};
+		
+		this.valid = m.prop('?');
 	},
 
 	view: function (ctrl) {
@@ -20,25 +23,47 @@ var app = {
 				mc.BootstrapForm.form({
 					style: 'border: thin solid gray;padding:1em',
 					model: ctrl.data,
-					//layout: 'horizontal',
+					layout: 'horizontal',
 					labelGridSize: 'col-sm-3',
-					inputGridSize: 'col-sm-9'
+					inputGridSize: 'col-sm-9',
+					valid: ctrl.valid
 				}, [
 					{
+						type:'static',
+						label: 'valid',
+						value: ctrl.valid()
+					},
+					{
 						type: 'fieldset',
-						label: 'person',
+						label: 'Person',
 						children: [
 
 							{
 								type: 'input',
 								label: 'First Name',
-								name: 'firstName'
+								name: 'firstName',
+								validate: {
+									fn: function (value, min, max) {
+										var l = value.length;
+										return l >= min && l<=max;
+									},
+									args: [6,8],
+									msg: 'should be at 6 and less than 9'
+								}
 							},
 							{
 								type: 'input',
 								label: 'Last Name',
 								name: 'lastName',
-								help: 'some little help'
+								help: 'some little help',
+								validate: {
+									fn: function (value, min, max) {
+										var l = value.length;
+										return l >= min && l<=max;
+									},
+									args: [4,10],
+									msg: 'should be at 4 and less than 10'
+								}
 							}
 						]
 					},
@@ -57,8 +82,8 @@ var app = {
 
 					{
 						type: 'radio',
-						label: 'T-shirt size',
 						name: 'size',
+						label: 'T-shirt size',
 						options: [
 							'Other',
 							{
@@ -81,6 +106,27 @@ var app = {
 								label: 'Extra-large',
 								value: 'XL'
 							}
+						]
+			
+					},
+
+					{
+						type: 'select',
+						label: 'Prefers',
+						name: 'sport',
+						multiple: true,
+						// rows: 20,
+						options: [
+							{
+								label: '--none--',
+								value: ''
+							},
+							'Soccer',
+							'Baseball',
+							'Rugby',
+							'Basketball',
+							'Polo'
+
 						]
 					}
 				])
@@ -114,6 +160,12 @@ var app = {
 					label: 'T-shirt size',
 					name: 'size'
 				}),
+				mc.BootstrapForm.static({
+					model: ctrl.data,
+					label: 'Preferred sport',
+					name: 'sport'
+
+				}),
 				mc.BootstrapForm.fieldset('buttons', [
 					{
 						type: 'button',
@@ -146,8 +198,8 @@ var app = {
 						type: 'button',
 						style: 'danger',
 						submit: true,
-						label: 'submit, danger',
-						config: m.route
+						label: 'submit, danger'
+						//,		config: m.route
 					},
 					{
 						type: 'button',
@@ -157,7 +209,7 @@ var app = {
 							alert('clicked on: ' + e.target.innerHTML);
 						}
 					}
-					
+
 				])
 
 			])

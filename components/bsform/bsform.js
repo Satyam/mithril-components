@@ -1,4 +1,4 @@
-/*global m:false */
+/*global m:false , window:false */
 var mc = mc || {};
 
 mc.BootstrapForm = (function () {
@@ -17,10 +17,13 @@ mc.BootstrapForm = (function () {
 		}
 		return attrs;
 	};
+	
+	
 	// copies all the properties from config into attrs except for those in skip
 	// returns the attributes for further chaining
 	// Beware!!, it modifies the initial attrs
 	var mergeAttrsExcept = function (attrs, config, skip) {
+		skip = skip.concat(['label', 'children', 'value', 'help', 'model', 'class', 'validate', 'formatter', 'parser']);
 		for (var name in config) {
 			if (skip.indexOf(name) == -1) {
 				if (name == 'class') {
@@ -31,35 +34,86 @@ mc.BootstrapForm = (function () {
 		return attrs;
 	};
 	
+	var containerAttrs = function (config, extra) {
+		return addClass(
+			addClass({}, config.class), 
+			extra
+		);
+	};
+			
+		
+
 	// copies only the given attributes
 	// Beware!!, it modifies the initial attrs
 	var mergeSomeAttrs = function (attrs, config, which) {
 		for (var name in which) {
 			if (name == 'class') {
 				addClass(attrs, config[name]);
-			} else  attrs[name] = config[name];
+			} else attrs[name] = config[name];
 		}
 		return attrs;
 	};
-			
 
-	var addHelp = function (children, help) {
-		if (help) {
-			var h = m('span.help-block', help);
-			if (children) {
-				if (children.push) {
-					children.push(h);
-				} else {
-					children = [children, h];
+
+	var readAndValidate = function (value, config, formConfig, setter) {
+		var validate = config.validate,
+			localValid = validate && validate.valid,
+			formValid = formConfig && formConfig.valid;
+
+		var setformValid = function (valid) {
+			if (!formValid) return;
+			var values = formValid.values;
+			values[config.name] = !valid && value;
+			valid = true;
+			for (var field in values) {
+				valid = valid && !values[field];
+			}
+			formValid(valid);
+		};
+
+		if (validate && validate.fn && (localValid || formValid)) {
+			var args = [].concat(value, validate.args);
+			if (!validate.fn.apply(this, args)) {
+				if (localValid) {
+					localValid(false);
+					localValid.value = value;
 				}
-			} else children = h;
+				setformValid(false);
+				return false;
+			}
 		}
-		return children;
+		setformValid(true);
+		if (setter) setter(config.parser ? config.parser(value) : value);
+		if (typeof formConfig.changed == 'function') formConfig.changed(true);
+		return true;
 	};
+
+	var invalidValue = function (config, formConfig) {
+		var localValid = config.validate && config.validate.valid,
+			formValid = formConfig && formConfig.valid,
+			valid = true;
+		if (localValid) {
+			valid = localValid();
+		} else if (formValid) {
+			valid = !formValid.values[config.name];
+		}
+		if (valid) return void 0;
+		return ((localValid && localValid.value) || formValid.values[config.name]);
+	};
+
+
 
 
 	// Collection of form controls
 	var formControls = {
+		fieldset: function (config, formConfig, children) {
+			config = config || {};
+			return m('fieldset', mergeAttrsExcept(containerAttrs(config), config, []), [
+				m('legend', config.label),
+				(config.help && m('span.help-block', config.help)),
+				processChildren(config, formConfig, children)
+			]);
+		},
 		input: function (config, formConfig) {
 			config = config || {};
 
@@ -71,42 +125,91 @@ mc.BootstrapForm = (function () {
 				// if type is not password or any of the new HTML5 input types, it just uses text.
 				type: config.type || 'text',
 				id: id
-			}, config, ['id', 'value', 'label', 'help', 'model', 'class']);
+			}, config, ['id']);
 
 
+			var valueChange = function (setter) {
+
+				return function (el, isInitialized, context) {
+					if (isInitialized) return;
+					var timer, value = el.value;
+					var hasChanged = function (ev) {
+						var newValue = ev.target.value;
+						if (newValue != value) {
+							//m.startComputation();
+							readAndValidate(newValue, config, formConfig, setter);
+							//m.endComputation();
+
+							value = newValue;
+						}
+					};
+						
+					el.addEventListener('focus', function (ev) {
+						timer = window.setInterval(function () {
+							hasChanged (ev);
+						}, 500);
+					});
+					el.addEventListener('blur', function (ev) {
+						hasChanged(ev);
+						//m.startComputation();
+						if (timer) window.clearInterval(timer);
+						//m.endComputation();
+					});
+				};
+
+			};
 			// If there is a model associated to the form and the control has a name
 			// do a two way binding to it
 			var model = config.model || formConfig.model,
-				name = config.name;
+				name = config.name,
+				value;
 			if (model && name) {
-				attrs.value = model[name];
-				attrs.onchange = function (e) {
-					model[name] = e.target.value;
-				};
+				value = model[name];
+//				attrs.onchange = function (ev) {
+//					readAndValidate(ev.target.value, config, formConfig, function (value) {
+//						model[name] = value;
+//					});
+//				};
+				attrs.config = valueChange(function (value) {
+					model[name] = value;
+				});
 			} else if (config.value) {
 				// If the value is given and it is a property getter/setter, do a two way binding
 				if (typeof config.value == 'function') {
-					attrs.value = config.value();
-					attrs.onchange = m.withAttr('value', config.value);
+					value = config.value();
+					attrs.config = valueChange(function (value) {
+						config.value(value);
+					});
+//					attrs.onchange = function (ev) {
+//						readAndValidate(ev.target.value, config, formConfig, function (value) {
+//							config.value(value);
+//						});
+//					};
 				} else {
 					// If it is a simple value just show it
 					attrs.value = config.value;
 				}
 			}
 
+			var invalid = invalidValue(config, formConfig);
+			attrs.value = (invalid !== undefined ? invalid : (config.formatter ? config.formatter(value) : value));
+
 			// return the assembled elements enclosed in a div.
-			return m('div.form-group', addClass({}, config.class), [
+			return m('div.form-group', containerAttrs(config, invalid && 'has-error'), [
 				m(
 					'label.control-label',
 					addClass({
-						'for': id
+						'for': id,
 					}, formConfig.layout == 'horizontal' && formConfig.labelGridSize),
 					config.label
 				),
 				m(
 					'div',
-					addClass({}, formConfig.layout == 'horizontal' && formConfig.inputGridSize),
-					addHelp(m((config.rows ? 'textarea' : 'input') + '.form-control', attrs), config.help)
+					addClass({}, formConfig.layout == 'horizontal' && formConfig.inputGridSize), [
+						m((config.rows ? 'textarea' : 'input') + '.form-control', attrs),
+						(config.help && m('span.help-block', config.help)),
+						(invalid && m('span.help-block', config.validate.msg))
+					]
 				)
 			]);
 		},
@@ -115,8 +218,8 @@ mc.BootstrapForm = (function () {
 			config = config || {};
 			var iAttrs = mergeAttrsExcept({
 				type: 'checkbox'
-			}, config, ['type', 'class', 'inline', 'value', 'checked', 'label', 'model']);
-			var dAttrs = addClass({}, config.class);
+			}, config, ['type', 'inline', 'checked']);
+			var dClasses = '';
 
 			// If there is a model associated to the form and the control has a name
 			// do a two way binding to it
@@ -124,8 +227,8 @@ mc.BootstrapForm = (function () {
 				name = config.name;
 			if (model && name) {
 				if (model[name]) iAttrs.checked = 'checked';
-				iAttrs.onclick = function (e) {
-					model[name] = e.target.checked;
+				iAttrs.onclick = function (ev) {
+					model[name] = ev.target.checked;
 				};
 			} else if (config.value) {
 				// If the value is given and it is a property getter/setter, do a two way binding
@@ -139,26 +242,26 @@ mc.BootstrapForm = (function () {
 			}
 
 			if (formConfig.layout == 'horizontal') {
-				if (formConfig.labelGridSize) addClass(dAttrs, formConfig.labelGridSize.replace(/col\-(..)\-(\d+)/g, 'col-$1-offset-$2'));
-				if (formConfig.inputGridSize) addClass(dAttrs, formConfig.inputGridSize);
+				if (formConfig.labelGridSize) dClasses += formConfig.labelGridSize.replace(/col\-(..)\-(\d+)/g, 'col-$1-offset-$2');
+				if (formConfig.inputGridSize) dClasses += ' ' + formConfig.inputGridSize;
 			}
 
 			//if (config.inline) addClass(dAttrs,'checkbox-inline');
 
-			return m('div.form-group', dAttrs, addHelp(
+			return m('div.form-group', containerAttrs(config, dClasses), [
 				m('label.control-label', [
 					m('input', iAttrs),
-					config.label
+					' ' + config.label
 				]),
-				config.help
-			));
+				(config.help && m('span.help-block',  config.help))
+			]);
 		},
 		radio: function (config, formConfig) {
 			config = config || {};
 			var iAttrs = mergeAttrsExcept({
 				type: 'radio'
-			}, config, ['class', 'inline', 'value', 'checked', 'label', 'options', 'model', 'type']),
-				dAttrs = addClass({}, config.class);
+			}, config, ['inline', 'checked', 'options', 'type']);
+			var dClasses = '';
 
 
 			iAttrs.name = uid(iAttrs.name);
@@ -170,16 +273,16 @@ mc.BootstrapForm = (function () {
 				value;
 			if (model && name) {
 				value = model[name];
-				iAttrs.onclick = function (e) {
-					var target = e.target;
+				iAttrs.onclick = function (ev) {
+					var target = ev.target;
 					model[name] = target.checked && target.value;
 				};
 			} else if (config.value) {
 				// If the value is given and it is a property getter/setter, do a two way binding
 				if (typeof config.value == 'function') {
 					value = config.value();
-					iAttrs.onclick = function (e) {
-						var target = e.target;
+					iAttrs.onclick = function (ev) {
+						var target = ev.target;
 						config.value(target.checked && target.value);
 					};
 				} else {
@@ -189,70 +292,152 @@ mc.BootstrapForm = (function () {
 			}
 
 
-			if (config.inline) dAttrs.class += ' checkbox-inline';
+			//if (config.inline) dAttrs.class += ' radio-inline';
 
 			if (formConfig.layout == 'horizontal') {
-				if (formConfig.labelGridSize) addClass(dAttrs, formConfig.labelGridSize.replace(/col\-(..)\-(\d+)/g, 'col-$1-offset-$2'));
-				if (formConfig.inputGridSize) addClass(dAttrs, formConfig.inputGridSize);
+				if (formConfig.labelGridSize) dClasses += formConfig.labelGridSize.replace(/col\-(..)\-(\d+)/g, 'col-$1-offset-$2');
+				if (formConfig.inputGridSize) dClasses += ' ' + formConfig.inputGridSize;
 			}
 
-			return m('div.form-group', addHelp(
+			return m('div.form-group',  [
+				m(
+					'label.control-label',
+					addClass({}, formConfig.layout == 'horizontal' && formConfig.labelGridSize),
+					config.label
+				),
 				config.options.map(function (opt) {
-					if (value == opt.value || opt) iAttrs.checked = 'checked';
+					var val = (typeof opt == 'object' ? opt.value : opt);
+					if (value == val) iAttrs.checked = 'checked';
 					else delete iAttrs.checked;
-					iAttrs.value = opt.value ||opt;
-					return m('div.radio', dAttrs,
+					iAttrs.value = val;
+					return m('div.radio', containerAttrs(config, dClasses),
 						m(
 							'label.control-label', (config.inline ? {
 								class: 'radio-inline'
 							} : {}), [
-								m('input', iAttrs),
-								opt.label || opt
-							]
+							m('input', iAttrs),
+							opt.label || opt
+						]
 						)
 					);
 				}),
-				config.help
-			));
+				(config.help && m('span.help-block', config.help))
+			]);
 		},
+		select: function (config, formConfig) {
+			config = config || {};
+			var id = uid(config.id);
+			var attrs = mergeAttrsExcept({
+				id: id
+			}, config, ['rows', 'id', 'checked', 'options', 'type']);
 
+
+			if (config.rows) attrs.size = config.rows;
+
+			// If there is a model associated to the form and the control has a name
+			// do a two way binding to it
+			var model = config.model || formConfig.model,
+				name = config.name,
+				value;
+			var readVal = function (ev) {
+				var target = ev.target,
+					sel = target.parentNode;
+				if (sel.multiple) {
+					var values = [],
+						opts = sel.options;
+					for (var i = 0; i < opts.length; i++) {
+						if (opts[i].selected) values.push(opts[i].value);
+					}
+					return values;
+				}
+				return target.value;
+			};
+
+			if (model && name) {
+				value = model[name];
+				attrs.onclick = function (ev) {
+					model[name] = readVal(ev);
+				};
+			} else if (config.value) {
+				// If the value is given and it is a property getter/setter, do a two way binding
+				if (typeof config.value == 'function') {
+					value = config.value();
+					attrs.onclick = function (ev) {
+						config.value(readVal(ev));
+					};
+				} else {
+					// Else, just set the value
+					value = config.value;
+				}
+			}
+
+
+			// return the assembled elements enclosed in a div.
+			return m('div.form-group', containerAttrs(config), [
+				m(
+					'label.control-label',
+					addClass({
+						'for': id
+					}, formConfig.layout == 'horizontal' && formConfig.labelGridSize),
+					config.label
+				),
+				m(
+					'div',
+					addClass({}, formConfig.layout == 'horizontal' && formConfig.inputGridSize), [
+						m(
+							'select.form-control',
+							attrs,
+							config.options.map(function (opt) {
+								var val = (typeof opt == 'object' ? opt.value : opt),
+									sel = (typeof value == 'object' ? value.indexOf(val) !== -1 : value == val);
+
+								return m('option', {
+									selected: sel,
+									value: val
+								}, opt.label || opt);
+							})
+						),
+						(config.help && m('span.help-block', config.help))
+					]
+				)
+			]);
+		},
 		static: function (config, formConfig) {
 			config = config || {};
 
 			var model = config.model || formConfig.model,
 				name = config.name;
 
-			return m('div.form-group', addClass({},config.class) , addHelp([
+			return m('div.form-group', containerAttrs(config), [
 				m('label.control-label', config.label),
 				m(
-					'p.form-control-static', 
-					mergeAttrsExcept({}, config, ['class', 'model', 'value']),
-					(model && name ? model[name] : config.value)
-				)
-			]));
-		},
-
-		fieldset: function (config, formConfig, children) {
-			config = config || {};
-			return m('fieldset.form-group', mergeAttrsExcept({},config, ['label','children', 'type']),[
-				m('legend', config.label),
-				processChildren(config, formConfig, children),
-				addHelp(null, config.help)
+					'p.form-control-static',
+					mergeAttrsExcept({}, config, []), (model && name ? model[name] : config.value)
+				),
+				(config.help && m('span.help-block', config.help))
 			]);
 		},
+
+
 		button: function (config, formConfig) {
 			config = config || {};
-			var attrs = mergeAttrsExcept({}, config, ['style', 'size', 'block', 'active', 'submit', 'label']);
+			var attrs = mergeAttrsExcept({}, config, ['style', 'size', 'block', 'active', 'submit']);
 			addClass(attrs, 'btn-' + (config.style || 'default'));
 			if (config.size) addClass(attrs, 'btn-' + config.size);
 			if (config.block) addClass(attrs, 'btn-block');
 			if (config.active) addClass(attrs, 'active');
-			if (config.submit) attrs.type = 'submit';
+			if (config.submit) {
+				attrs.type = 'submit';
+				if (!('disabled' in attrs)) {
+					attrs.disabled = (typeof formConfig.changed == 'function' && !formConfig.changed()) ||
+						(typeof formConfig.valid == 'function' && !formConfig.valid());
+				}
+			}
+
 			return [
 				m((config.href ? 'a' : 'button') + '.btn', attrs, config.label),
 				' '
-			];
-			
+				];
 		}
 	};
 
@@ -302,10 +487,20 @@ mc.BootstrapForm = (function () {
 			formConfig = {};
 		}
 		var attrs = {};
-		mergeAttrsExcept(attrs, formConfig, ['layout', 'model', 'labelGridSize', 'inputGridSize', 'children']);
+		mergeAttrsExcept(attrs, formConfig, ['layout', 'labelGridSize', 'inputGridSize', 'changed', 'valid']);
 		if (formConfig.layout) addClass(attrs, ' form-' + formConfig.layout);
-
+		if (formConfig.valid && !formConfig.valid.values) {
+			formConfig.valid.values = {};
+		}
 		return m('form', attrs, processChildren(formConfig, formConfig, children));
+	};
+	bsf.fieldset = function (label, children) {
+		return formControls.fieldset(
+			(typeof label == 'string' ? {
+				label: label
+			} : label), {},
+			children
+		);
 	};
 	bsf.input = function (config) {
 		return formControls.input(config, {});
@@ -313,15 +508,17 @@ mc.BootstrapForm = (function () {
 	bsf.checkbox = function (config) {
 		return formControls.checkbox(config, {});
 	};
-	bsf.static = function (label, value) {
-		return formControls.static(arguments.length==2 ? {label: label, value: value}: label);
+	bsf.radio = function (config) {
+		return formControls.radio(config, {});
 	};
-	bsf.fieldset = function (label, children) {
-		return formControls.fieldset(
-			(typeof label == 'string' ? {label: label}: label),
-			{},
-			children
-		);
+	bsf.select = function (config) {
+		return formControls.select(config, {});
+	};
+	bsf.static = function (label, value) {
+		return formControls.static(arguments.length == 2 ? {
+			label: label,
+			value: value
+		} : label);
 	};
 	bsf.button = function (config) {
 		return formControls.button(config, {});
