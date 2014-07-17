@@ -14,24 +14,22 @@ var app = {
 			sport: ['Rugby', 'Soccer']
 		};
 		
-		this.valid = m.prop('?');
+		this.bsfController = new mc.BootstrapForm.controller({model: this.data});
 	},
 
 	view: function (ctrl) {
 		return m('div.container-fluid', m('div.row', [
 			m('div.col-md-5',
-				mc.BootstrapForm.form({
+				mc.BootstrapForm.form(ctrl.bsfController, {
 					style: 'border: thin solid gray;padding:1em',
-					model: ctrl.data,
 					layout: 'horizontal',
 					labelGridSize: 'col-sm-3',
 					inputGridSize: 'col-sm-9',
-					valid: ctrl.valid
 				}, [
 					{
 						type:'static',
 						label: 'valid',
-						value: ctrl.valid()
+						value: ctrl.bsfController.isValid()
 					},
 					{
 						type: 'fieldset',
@@ -64,6 +62,12 @@ var app = {
 									args: [4,10],
 									msg: 'should be at 4 and less than 10'
 								}
+							},
+							{
+								type: 'button',
+								label: 'enabled?',
+								autoEnable: true,
+								style: 'primary'
 							}
 						]
 					},
@@ -133,40 +137,40 @@ var app = {
 			),
 			m('div.col-md-2'),
 			m('div.col-md-5', [
-				mc.BootstrapForm({
+				mc.BootstrapForm(ctrl.bsfController,{
 					type: 'static',
 					model: ctrl.data,
 					label: 'First Name',
 					name: 'firstName'
 
 				}),
-				mc.BootstrapForm.static({
+				mc.BootstrapForm.static(ctrl.bsfController,{
 					model: ctrl.data,
 					label: 'Last Name',
 					name: 'lastName'
 				}),
-				mc.BootstrapForm.static({
+				mc.BootstrapForm.static(ctrl.bsfController,{
 					model: ctrl.data,
 					label: 'Active',
 					name: 'active'
 				}),
-				mc.BootstrapForm.static({
+				mc.BootstrapForm.static(ctrl.bsfController,{
 					model: ctrl.data,
 					label: 'Something really long',
 					name: 'lorenIpsum'
 				}),
-				mc.BootstrapForm.static({
+				mc.BootstrapForm.static(ctrl.bsfController,{
 					model: ctrl.data,
 					label: 'T-shirt size',
 					name: 'size'
 				}),
-				mc.BootstrapForm.static({
+				mc.BootstrapForm.static(ctrl.bsfController,{
 					model: ctrl.data,
 					label: 'Preferred sport',
 					name: 'sport'
 
 				}),
-				mc.BootstrapForm.fieldset('buttons', [
+				mc.BootstrapForm.fieldset(ctrl.bsfController,'buttons', [
 					{
 						type: 'button',
 						style: 'primary',

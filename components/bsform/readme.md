@@ -170,18 +170,17 @@ The `parser` function should accept the value as read from the input control and
 <a name="validation"/>
 ###Validation###
 
-Validation is supported via the `validate` property.   Each field that requires validation must add a `validate` property to is configuration object.   The `validate` object has the following properties:
+Validation is supported via the `validate` property.   Each field that requires validation must add `validate` and `valid` properties to is configuration object.  Validate fields also need to have their `name` property set. The `validate` property can be a validation object or an array of validation objects.  By allowing an array of validations, several individual validation functions can be applied to the same field, each with its own error message. 
+
+Each validation object has the following properties:
 
 * `fn` {Function} The validation function, it should accept the value to be validated and return *truish* if valid.  The function will receive the raw value as read from the DOM element, without parsing.
 * `msg` {String} A message to be shown below the input field if the value does not validate. If no message is included, the field will be [highlighted](http://getbootstrap.com/css/#forms-control-validation) with the `.has-error` className but no other information will be available to the user.
 * `args` {Any} Extra arguments that the validator function might require besides the value to validate.  It can be a simple value or an array of values.
-* `valid` {setter/getter} (optional) a property getter/setter that will be set to `true` if the field passes validation.
 
-If a value is invalid, it won't be stored into its associated property or model via [data binding](#binding).
+The validation status of an individual field or of a form can be tracked via the `valid` property which should reference a property setter/getter.  Either a global `valid` property is set for the whole form or each field that has validations has to have a `valid` property set.  The `valid` property at the form level will be true when all the validated fields pass the validation.  All unvalidated fields are assume valid.
 
-Additionally, the developer may configure a form to keep track of the status of the fields by setting the `valid` property in the configuration object of a form to a property setter/getter.  The property setter/getter will return `true` when all the validators validate their values.  For this feature to work, the individual fields being validated must have their `name` configurtion property set to unique values within each form.   Fields with no `name` nor `validate.fn` will be assumed valid.
-
-Buttons of type `submit` created via `mc.BootstrapForm.button(config)` contained within a form with its `valid` property set, will use that property to disable themselves when there is invalid data.
+Buttons with the `autoEnable` configuration property set will be be disabled when validation of any validated field fails or when there has been no change in any field.
 
 ###Containers###
 
