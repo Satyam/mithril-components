@@ -1,9 +1,77 @@
 /* jshint browser:true */
 /* global m:false,mc:false, alert:false */
 
+var counter = 0;
 var app = {
+	controller: function () {
+		this.data = {
+			firstName: 'John',
+			lastName: 'Doe',
+			active: false,
+			lorenIpsum: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+			size: 'M',
+			sport: ['Rugby', 'Soccer']
+		};
+		this.firstName = m.prop('John');
+		this.fieldController = new mc.BootstrapForm.fieldController({
+			model:this.data
+		});
+		this.fCtrl = new mc.BootstrapForm.fieldController({
+			model:this.data
+		});
+		
+		this.formController = new mc.BootstrapForm.formController({
+			model: this.data
+		});
 
+	},
+	view: function (ctrl) {
+		return m('div.container-fluid', m('div.row', [
+			m('div.col-md-5',[
+				mc.BootstrapForm.form(ctrl.formController, [
+					{
+						type:'input',
+						label: 'First Name',
+						//value: this.firstName,
+						name: 'firstName',
+						validate: {
+							fn: function (value, min, max) {
+								var l = value.length;
+								return l >= min && l <= max;
+							},
+							args: [6, 8],
+							msg: 'should be at 6 and less than 9'
+						}
+					}
+				]),
+				mc.BootstrapForm.input(ctrl.fieldController, {
+					label: 'First Name',
+					//value: this.firstName,
+					name: 'firstName',
+					validate: {
+						fn: function (value, min, max) {
+							var l = value.length;
+							return l >= min && l <= max;
+						},
+						args: [6, 8],
+						msg: 'should be at 6 and less than 9'
+					}
+				})
+			]),
+			m('div.col-md-5', [
+				mc.BootstrapForm.input(ctrl.fCtrl, {
+					label:'copy',
+					//value: this.firstName,
+					name: 'firstName'
+				}),
+				m('p', 'counter: ' + counter++),
+				m('p', 'isValid: ' + ctrl.formController.isValid()),
+				m('p', 'hasChanged: ' + ctrl.formController.hasChanged())
+			])
+		]));
+	}
 
+	/*
 	controller: function () {
 		this.data = {
 			firstName: 'John',
@@ -218,7 +286,7 @@ var app = {
 
 			])
 		]));
-	}
+	}*/
 };
 
 m.module(document.body, app);

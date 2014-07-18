@@ -32,10 +32,10 @@ mc.BootstrapForm = (function () {
 		return attrs;
 	};
 	
-	var containerAttrs = function (config, extra) {
+	var containerAttrs = function (config, extraClass, attrs) {
 		return addClass(
-			addClass({}, config.class), 
-			extra
+			addClass(attrs || {}, config.class), 
+			extraClass
 		);
 	};
 			
@@ -53,8 +53,27 @@ mc.BootstrapForm = (function () {
 	};
 
 
-
-
+//	var cloneConfig = function (config, defaults) {
+//		var k, c = {};
+//		if (defaults) {
+//			for (k in defaults) {
+//				c[k] = defaults[k];
+//			}
+//		}
+//		if (config) {
+//			for (k in config) {
+//				c[k] = config[k];
+//			}
+//		}
+//		return c;
+//	};
+	
+	var setStyle = function () {
+			styleSet = true;
+			var style = document.createElement('style');
+			style.innerHTML = ".error-block {display:none} .has-error .error-block {display:block}";
+			document.head.appendChild(style);
+		};
 
 
 
@@ -65,15 +84,15 @@ mc.BootstrapForm = (function () {
 			return m('fieldset', mergeAttrsExcept(containerAttrs(config), config, []), [
 				m('legend', config.label),
 				(config.help && m('span.help-block', config.help)),
-				ctrl.processChildren(config, children)
+				ctrl._formCtrl.processChildren(config, children)
 			]);
 		},
 		input: function (ctrl, config) {
 			config = config || {};
-			var formConfig = ctrl.formConfig;
 
 			// ensures there is an id to associate the label to the field
-			var id = uid(config.id);
+			var id = ctrl._uid || (ctrl._uid = uid(config.id));
+			var container;
 
 			// merges attributes from config, except for those listed
 			var attrs = mergeAttrsExcept({
@@ -87,12 +106,7 @@ mc.BootstrapForm = (function () {
 
 				return function (el, isInitialized, context) {
 					if (isInitialized) return;
-					var timer, value = el.value, newValue, container= el.parentElement;
-					
-					while (container && container.className.indexOf('form-group') == -1) {
-						container = container.parentElement;
-					}
-					
+					var timer, value = el.value, originalValue = value, newValue;
 
 						
 					el.addEventListener('focus', function (ev) {
@@ -103,19 +117,20 @@ mc.BootstrapForm = (function () {
 								container.className = container.className.replace('has-error','');
 								if (ctrl.validateField(newValue, config)) {
 									container.className = container.className.trim() + ' has-error';
+									ctrl.setField(newValue, config, setter);
 								}
-								ctrl.setField(newValue, config,setter);
 							}
 						}, 500);
 					});
 					el.addEventListener('blur', function (ev) {
 						if (timer) window.clearInterval(timer);
 						newValue = ev.target.value;
-						ctrl.setField(newValue, config, setter);
-						if (!ctrl.validateField(newValue, config)) {
-							m.startComputation();
-							//window.setTimeout(m.endComputation,1);	
-							m.endComputation();
+						if (newValue !== originalValue) {
+							if (!ctrl.validateField(newValue, config)) {
+								m.startComputation();
+								ctrl.setField(newValue, config, setter);
+								m.endComputation();
+							}
 						}
 						
 					});
@@ -124,8 +139,9 @@ mc.BootstrapForm = (function () {
 			};
 			// If there is a model associated to the form and the control has a name
 			// do a two way binding to it
-			var model = config.model || ctrl.model,
+			var model = ctrl.model,
 				name = config.name,
+				valueSrc = config.value,
 				value,
 				field;
 			if (model && name) {
@@ -133,16 +149,16 @@ mc.BootstrapForm = (function () {
 				attrs.config = valueChange(function (value) {
 					model[name] = value;
 				});
-			} else if (config.value) {
+			} else if (valueSrc !== undefined) {
 				// If the value is given and it is a property getter/setter, do a two way binding
-				if (typeof config.value == 'function') {
-					value = config.value();
+				if (typeof valueSrc == 'function') {
+					value = valueSrc();
 					attrs.config = valueChange(function (value) {
-						config.value(value);
+						valueSrc(value);
 					});
 				} else {
 					// If it is a simple value just show it
-					attrs.value = config.value;
+					attrs.value = valueSrc;
 				}
 			}
 
@@ -157,17 +173,21 @@ mc.BootstrapForm = (function () {
 			attrs.value = value;
 
 			// return the assembled elements enclosed in a div.
-			return m('div.form-group', containerAttrs(config, field && 'has-error'), [
+			return m(
+				'div.form-group', 
+				containerAttrs(config, field && 'has-error', {config: function (el, isInitialized, context) {
+					container = el;
+				}}), [
 				m(
 					'label.control-label',
 					addClass({
 						'for': id						
-					}, formConfig.layout == 'horizontal' && formConfig.labelGridSize),
+					}, config.layout == 'horizontal' && config.labelGridSize),
 					config.label
 				),
 				m(
 					'div',
-					addClass({}, formConfig.layout == 'horizontal' && formConfig.inputGridSize), [
+					addClass({}, config.layout == 'horizontal' && config.inputGridSize), [
 						m((config.rows ? 'textarea' : 'input') + '.form-control', attrs),
 						(config.help && m('span.help-block', config.help)),
 						m('div.help-block.error-block', (field && field.errors.map(function (error) {
@@ -230,7 +250,7 @@ mc.BootstrapForm = (function () {
 			var dClasses = '';
 
 
-			iAttrs.name = uid(iAttrs.name);
+			iAttrs.name = ctrl._uid || (ctrl._uid = uid(config.name));
 
 			// If there is a model associated to the form and the control has a name
 			// do a two way binding to it
@@ -292,7 +312,7 @@ mc.BootstrapForm = (function () {
 		},
 		select: function (ctrl, config) {
 			config = config || {};
-			var id = uid(config.id);
+			var id = ctrl._uid || (ctrl._uid = uid(config.id));
 			var attrs = mergeAttrsExcept({
 				id: id
 			}, config, ['rows', 'id', 'checked', 'options', 'type']);
@@ -426,36 +446,24 @@ mc.BootstrapForm = (function () {
 		}
 		return formControls[type](ctrl, config, {});
 	};
-	bsf.controller = function (config) {
-		config = config || {};
-		this.model =  config.model;
-		this._hasChanged = false;
-		this._isValid = true;
-		this._fields = {};
-		this._buttons = [];
+	bsf.fieldController = function (config, _formCtrl) {
+		this.model = config.model;
 		
-		if (!styleSet) {
-			styleSet = true;
-			var style = document.createElement('style');
-			style.innerHTML = ".error-block {display:none} .has-error .error-block {display:block}";
-			document.head.appendChild(style);
-		}
-		this.isValid = function () {
-			return this._isValid;
+		this._formCtrl = _formCtrl;
+		
+		// this._config = cloneConfig(config);
+		this._hasChanged = false;
+		this._errors = [];
+		if (!styleSet) setStyle();
+		this.isValid  = function () {
+			return !this._errors.length;
+		};
+		this.getErrorMsgs = function () {
+			return this._errors;
 		};
 		this.hasChanged = function () {
 			return this._hasChanged;
 		};
-		this.getErrors = function () {
-			var err = {}, e;
-			for (var f in this._fields) {
-				e = this._fields[f].errors;
-				if (e) err[f] = e;
-			}
-			return err;
-		};
-		this.formConfig = {};
-		
 		this.validateField = function (value, config) {
 			
 			var validations = [].concat(config.validate),
@@ -473,36 +481,77 @@ mc.BootstrapForm = (function () {
 					}
 				}
 			});
-			f = this._fields[name]; 
-			if (!f) {
-				this._fields[name] = f = {};
-			}
-			f.errors = errors;
-			f.value = value;
-			for (f in this._fields) {
-				valid = valid && !this._fields[f].errors.length;
-			}
-			this._isValid = valid;
-			this._buttons.forEach(function (el) {
-				el.disabled = !valid;
-			});
-			return errors.length && this._fields[name];
+			this._errors = errors;
+			if (_formCtrl) _formCtrl.fieldValidated(this);
+			return errors.length && {
+				value:value,
+				errors: errors
+			};
+			
 		};
 		
 		this.setField = function (value, config, setter) {
 			setter(config.parser ? config.parser(value) : value);
 			this._hasChanged = true;
+			if (_formCtrl) _formCtrl.fieldChanged(this);
 		};
 		
-		this.invalidValue = function (config) {
-			var name = config.name,
-				field = this._fields[name];
-			
-			if (!(field && field.errors.length)) return;
-			return field;
+	};
+		
+	bsf.formController = function (config) {
+		config = config || {};
+		this.model =  config.model;
+		this._hasChanged = false;
+		this._isValid = true;
+		this._fields = {};
+		this._buttons = [];
+		
+		if (!styleSet) setStyle();
+		this.isValid = function () {
+			return this._isValid;
 		};
+		this.hasChanged = function () {
+			return this._hasChanged;
+		};
+		this.getErrors = function () {
+			var err = {}, e;
+			for (var f in this._fields) {
+				e = this._fields[f].errors;
+				if (e) err[f] = e;
+			}
+			return err;
+		};
+		
+		this.fieldValidated = function (fieldCtrl) {
+			var valid = fieldCtrl.isValid();
+			if (valid) {
+				for (var name in this._fields) {
+					valid = valid && this._fields[name].isValid();
+				}
+			}
+			this._isValid = valid;
+			this._buttons.forEach(function (el) {
+				el.disabled = !(valid && this._hasChanged);
+			});
+		};
+		
+		this.fieldChanged = function (fieldCtrl) {
+			var hasChanged = fieldCtrl.hasChanged();
+			if (!hasChanged) {
+				for (var name in this._fields) {
+					hasChanged = hasChanged || this._fields[name].hasChanged();
+				}
+			}
+			this._hasChanged = hasChanged;
+			this._buttons.forEach(function (el) {
+				el.disabled = !(hasChanged && this._isValid);
+			});
+		};
+		
+		
 		this.processChildren = function (config, children) {
-			var _children = [];
+			var _children = [], 
+				fields = this._fields;
 			(children || config.children).forEach(function (content) {
 				switch (typeof content) {
 				case 'function':
@@ -520,7 +569,12 @@ mc.BootstrapForm = (function () {
 							type = 'input';
 							if (!content.rows) children.rows = 5;
 						}
-						_children.push(formControls[type](this,content));
+						var name = content.name,
+							fieldCtrl = fields[name];
+						if (!fieldCtrl) {
+							fields[name] = fieldCtrl = new bsf.fieldController({model: this.model}, this);
+						}
+						_children.push(formControls[type](fieldCtrl, content));
 					}
 					break;
 				default:
