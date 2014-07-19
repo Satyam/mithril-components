@@ -3,6 +3,7 @@
 
 var counter = 0;
 var app = {
+	/*
 	controller: function () {
 		this.data = {
 			firstName: 'John',
@@ -30,33 +31,51 @@ var app = {
 			m('div.col-md-5',[
 				mc.BootstrapForm.form(ctrl.formController, [
 					{
-						type:'input',
-						label: 'First Name',
-						//value: this.firstName,
-						name: 'firstName',
-						validate: {
-							fn: function (value, min, max) {
-								var l = value.length;
-								return l >= min && l <= max;
+						type:'fieldset',
+						label: 'people',
+						children: [
+							{
+								type:'input',
+								label: 'First Name',
+								//value: this.firstName,
+								name: 'firstName',
+								validate: [
+									{
+										fn: function (value, min, max) {
+											var l = value.length;
+											return l >= min && l <= max;
+										},
+										args: [6, 80],
+										msg: 'should be at least 6 and less than 81'
+									},
+									{
+										fn: function (value, min, max) {
+											var l = value.length;
+											return l >= min && l <= max;
+										},
+										args: [0, 8],
+										msg: 'should be less than 9'
+									}
+								]
 							},
-							args: [6, 8],
-							msg: 'should be at 6 and less than 9'
-						}
+							{
+								type: 'input',
+								label: 'Last Name',
+								//value: this.firstName,
+								name: 'lastName',
+								validate: {
+									fn: function (value, min, max) {
+										var l = value.length;
+										return l >= min && l <= max;
+									},
+									args: [6, 8],
+									msg: 'should be at 6 and less than 9'
+								}
+							}
+						]
 					}
-				]),
-				mc.BootstrapForm.input(ctrl.fieldController, {
-					label: 'First Name',
-					//value: this.firstName,
-					name: 'firstName',
-					validate: {
-						fn: function (value, min, max) {
-							var l = value.length;
-							return l >= min && l <= max;
-						},
-						args: [6, 8],
-						msg: 'should be at 6 and less than 9'
-					}
-				})
+				])
+						
 			]),
 			m('div.col-md-5', [
 				mc.BootstrapForm.input(ctrl.fCtrl, {
@@ -70,8 +89,9 @@ var app = {
 			])
 		]));
 	}
+	*/
 
-	/*
+	
 	controller: function () {
 		this.data = {
 			firstName: 'John',
@@ -82,22 +102,23 @@ var app = {
 			sport: ['Rugby', 'Soccer']
 		};
 		
-		this.bsfController = new mc.BootstrapForm.controller({model: this.data});
-	},
+		this.formController = new mc.BootstrapForm.formController({model: this.data});
+		this.fieldController = new mc.BootstrapForm.fieldController({model:this.data});	},
 
 	view: function (ctrl) {
 		return m('div.container-fluid', m('div.row', [
 			m('div.col-md-5',
-				mc.BootstrapForm.form(ctrl.bsfController, {
+				mc.BootstrapForm.form(ctrl.formController, {
 					style: 'border: thin solid gray;padding:1em',
-					layout: 'horizontal',
+					//layout: 'horizontal',
 					labelGridSize: 'col-sm-3',
 					inputGridSize: 'col-sm-9',
+					role: 'form'
 				}, [
 					{
 						type:'static',
 						label: 'valid',
-						value: ctrl.bsfController.isValid()
+						value: ctrl.formController.isValid()
 					},
 					{
 						type: 'fieldset',
@@ -205,40 +226,40 @@ var app = {
 			),
 			m('div.col-md-2'),
 			m('div.col-md-5', [
-				mc.BootstrapForm(ctrl.bsfController,{
+				mc.BootstrapForm(ctrl.fieldController,{
 					type: 'static',
 					model: ctrl.data,
 					label: 'First Name',
 					name: 'firstName'
 
 				}),
-				mc.BootstrapForm.static(ctrl.bsfController,{
+				mc.BootstrapForm.static(ctrl.fieldController,{
 					model: ctrl.data,
 					label: 'Last Name',
 					name: 'lastName'
 				}),
-				mc.BootstrapForm.static(ctrl.bsfController,{
+				mc.BootstrapForm.static(ctrl.fieldController,{
 					model: ctrl.data,
 					label: 'Active',
 					name: 'active'
 				}),
-				mc.BootstrapForm.static(ctrl.bsfController,{
+				mc.BootstrapForm.static(ctrl.fieldController,{
 					model: ctrl.data,
 					label: 'Something really long',
 					name: 'lorenIpsum'
 				}),
-				mc.BootstrapForm.static(ctrl.bsfController,{
+				mc.BootstrapForm.static(ctrl.fieldController,{
 					model: ctrl.data,
 					label: 'T-shirt size',
 					name: 'size'
 				}),
-				mc.BootstrapForm.static(ctrl.bsfController,{
+				mc.BootstrapForm.static(ctrl.fieldController,{
 					model: ctrl.data,
 					label: 'Preferred sport',
 					name: 'sport'
 
 				}),
-				mc.BootstrapForm.fieldset(ctrl.bsfController,'buttons', [
+				/*mc.BootstrapForm.fieldset(ctrl.fieldController,'buttons', [
 					{
 						type: 'button',
 						style: 'primary',
@@ -283,10 +304,10 @@ var app = {
 					}
 
 				])
-
+*/
 			])
 		]));
-	}*/
+	}
 };
 
 m.module(document.body, app);

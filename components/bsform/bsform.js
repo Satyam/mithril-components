@@ -20,7 +20,7 @@ mc.BootstrapForm = (function () {
 	// copies all the properties from config into attrs except for those in skip
 	// returns the attributes for further chaining
 	// Beware!!, it modifies the initial attrs
-	var mergeAttrsExcept = function (attrs, config, skip) {
+	var mergeExcept = function (attrs, config, skip) {
 		skip = skip.concat(['label', 'children', 'value', 'help', 'model', 'class', 'validate', 'formatter', 'parser']);
 		for (var name in config) {
 			if (skip.indexOf(name) == -1) {
@@ -43,12 +43,14 @@ mc.BootstrapForm = (function () {
 
 	// copies only the given attributes
 	// Beware!!, it modifies the initial attrs
-	var mergeSomeAttrs = function (attrs, config, which) {
-		for (var name in which) {
-			if (name == 'class') {
-				addClass(attrs, config[name]);
-			} else attrs[name] = config[name];
-		}
+	var mergeSome = function (attrs, config, which) {
+		which.forEach(function (name) {
+			if (name in config) {
+				if (name == 'class') {
+					addClass(attrs, config[name]);
+				} else attrs[name] = config[name];
+			}
+		});
 		return attrs;
 	};
 
@@ -81,7 +83,7 @@ mc.BootstrapForm = (function () {
 	var formControls = {
 		fieldset: function (ctrl, config, children) {
 			config = config || {};
-			return m('fieldset', mergeAttrsExcept(containerAttrs(config), config, []), [
+			return m('fieldset', mergeExcept(containerAttrs(config), config, []), [
 				m('legend', config.label),
 				(config.help && m('span.help-block', config.help)),
 				ctrl._formCtrl.processChildren(config, children)
@@ -95,7 +97,7 @@ mc.BootstrapForm = (function () {
 			var container;
 
 			// merges attributes from config, except for those listed
-			var attrs = mergeAttrsExcept({
+			var attrs = mergeExcept({
 				// if type is not password or any of the new HTML5 input types, it just uses text.
 				type: config.type || 'text',
 				id: id
@@ -115,9 +117,11 @@ mc.BootstrapForm = (function () {
 							if (newValue != value) {
 								value = newValue;
 								container.className = container.className.replace('has-error','');
-								if (ctrl.validateField(newValue, config)) {
+								ctrl.setField(newValue, config, setter);
+								if (!ctrl.validateField(newValue, config)) {
 									container.className = container.className.trim() + ' has-error';
-									ctrl.setField(newValue, config, setter);
+									ctrl._value = newValue;
+									m.render(container, contents(ctrl));
 								}
 							}
 						}, 500);
@@ -126,9 +130,9 @@ mc.BootstrapForm = (function () {
 						if (timer) window.clearInterval(timer);
 						newValue = ev.target.value;
 						if (newValue !== originalValue) {
-							if (!ctrl.validateField(newValue, config)) {
+							ctrl.setField(newValue, config, setter);
+							if (ctrl.validateField(newValue, config)) {
 								m.startComputation();
-								ctrl.setField(newValue, config, setter);
 								m.endComputation();
 							}
 						}
@@ -142,8 +146,7 @@ mc.BootstrapForm = (function () {
 			var model = ctrl.model,
 				name = config.name,
 				valueSrc = config.value,
-				value,
-				field;
+				value;
 			if (model && name) {
 				value = model[name];
 				attrs.config = valueChange(function (value) {
@@ -163,45 +166,50 @@ mc.BootstrapForm = (function () {
 			}
 
 			if (config.formatter) value = config.formatter(value);
-			if (config.validate) {
-				field = ctrl.validateField(value, config);
-				if (field) {
-					value = field.value;
-				}
-
-			}
-			attrs.value = value;
-
+			if (config.validate) ctrl.validateField(value, config);
+			ctrl._value = value;
+			var contents = function (ctrl) {
+				attrs.value = ctrl._value;
+				return [
+					m(
+						'label.control-label',
+						addClass({
+							'for': id						
+						}, config.layout == 'horizontal' && config.labelGridSize),
+						config.label
+					),
+					m(
+						'div',
+						addClass({}, config.layout == 'horizontal' && config.inputGridSize), [
+							m((config.rows ? 'textarea' : 'input') + '.form-control', attrs),
+							(config.help && m('span.help-block', config.help)),
+							m('div.help-block.error-block', (ctrl._errors.map(function (error) {
+								return m('p', error);
+							})))
+						]
+					)
+				];
+			};
 			// return the assembled elements enclosed in a div.
 			return m(
 				'div.form-group', 
-				containerAttrs(config, field && 'has-error', {config: function (el, isInitialized, context) {
+				containerAttrs(config, !ctrl.isValid() && 'has-error', {config: function (el, isInitialized, context) {
+					if (isInitialized) return;
 					container = el;
-				}}), [
-				m(
-					'label.control-label',
-					addClass({
-						'for': id						
-					}, config.layout == 'horizontal' && config.labelGridSize),
-					config.label
-				),
-				m(
-					'div',
-					addClass({}, config.layout == 'horizontal' && config.inputGridSize), [
-						m((config.rows ? 'textarea' : 'input') + '.form-control', attrs),
-						(config.help && m('span.help-block', config.help)),
-						m('div.help-block.error-block', (field && field.errors.map(function (error) {
-							return m('p', error);
-						})))
-					]
-				)
-			]);
+					m.module(el, {
+						controller: function () {
+							return ctrl;
+						},
+						view: contents
+					});
+				}})
+			);
+				
 		},
 
 		checkbox: function (ctrl, config) {
 			config = config || {};
-			var formConfig = ctrl.formConfig,
-				iAttrs = mergeAttrsExcept({
+			var iAttrs = mergeExcept({
 				type: 'checkbox'
 			}, config, ['type', 'inline', 'checked']);
 			var dClasses = '';
@@ -226,25 +234,25 @@ mc.BootstrapForm = (function () {
 				}
 			}
 
-			if (formConfig.layout == 'horizontal') {
-				if (formConfig.labelGridSize) dClasses += formConfig.labelGridSize.replace(/col\-(..)\-(\d+)/g, 'col-$1-offset-$2');
-				if (formConfig.inputGridSize) dClasses += ' ' + formConfig.inputGridSize;
+			if (config.layout == 'horizontal') {
+				if (config.labelGridSize) dClasses += config.labelGridSize.replace(/col\-(..)\-(\d+)/g, 'col-$1-offset-$2');
+				if (config.inputGridSize) dClasses += ' ' + config.inputGridSize;
 			}
 
 			//if (config.inline) addClass(dAttrs,'checkbox-inline');
 
-			return m('div.form-group', containerAttrs(config), [
-				m('label.control-label', addClass({}, dClasses), [
+			return m('div.form-group', m('div.checkbox', addClass(containerAttrs(config), dClasses), [
+				
+				m('label.control-label', [
 					m('input', iAttrs),
 					' ' + config.label
 				]),
 				(config.help && m('span.help-block', addClass({}, dClasses),  config.help))
-			]);
+			]));
 		},
 		radio: function (ctrl, config) {
-			var formConfig = ctrl.formConfig;
 			config = config || {};
-			var iAttrs = mergeAttrsExcept({
+			var iAttrs = mergeExcept({
 				type: 'radio'
 			}, config, ['inline', 'checked', 'options', 'type']);
 			var dClasses = '';
@@ -280,15 +288,15 @@ mc.BootstrapForm = (function () {
 
 			//if (config.inline) dAttrs.class += ' radio-inline';
 
-			if (formConfig.layout == 'horizontal') {
-				if (formConfig.labelGridSize) dClasses += formConfig.labelGridSize.replace(/col\-(..)\-(\d+)/g, 'col-$1-offset-$2');
-				if (formConfig.inputGridSize) dClasses += ' ' + formConfig.inputGridSize;
+			if (config.layout == 'horizontal') {
+				if (config.labelGridSize) dClasses += config.labelGridSize.replace(/col\-(..)\-(\d+)/g, 'col-$1-offset-$2');
+				if (config.inputGridSize) dClasses += ' ' + config.inputGridSize;
 			}
 
 			return m('div.form-group',  [
 				m(
 					'label.control-label',
-					addClass({}, formConfig.layout == 'horizontal' && formConfig.labelGridSize),
+					addClass({}, config.layout == 'horizontal' && config.labelGridSize),
 					config.label
 				),
 				config.options.map(function (opt) {
@@ -313,7 +321,7 @@ mc.BootstrapForm = (function () {
 		select: function (ctrl, config) {
 			config = config || {};
 			var id = ctrl._uid || (ctrl._uid = uid(config.id));
-			var attrs = mergeAttrsExcept({
+			var attrs = mergeExcept({
 				id: id
 			}, config, ['rows', 'id', 'checked', 'options', 'type']);
 
@@ -364,12 +372,12 @@ mc.BootstrapForm = (function () {
 					'label.control-label',
 					addClass({
 						'for': id
-					}, ctrl.formConfig.layout == 'horizontal' && ctrl.formConfig.labelGridSize),
+					}, config.layout == 'horizontal' && config.labelGridSize),
 					config.label
 				),
 				m(
 					'div',
-					addClass({}, ctrl.formConfig.layout == 'horizontal' && ctrl.formConfig.inputGridSize), [
+					addClass({}, config.layout == 'horizontal' && config.inputGridSize), [
 						m(
 							'select.form-control',
 							attrs,
@@ -395,10 +403,15 @@ mc.BootstrapForm = (function () {
 				name = config.name;
 
 			return m('div.form-group', containerAttrs(config), [
-				m('label.control-label', config.label),
+				m(
+					'label.control-label', 
+					addClass({}, config.layout == 'horizontal' && config.labelGridSize), 
+					config.label
+				),
 				m(
 					'p.form-control-static',
-					mergeAttrsExcept({}, config, []), (model && name ? model[name] : config.value)
+					mergeExcept(addClass({}, config.layout == 'horizontal' && config.inputGridSize), config, []), 
+					(model && name ? model[name] : config.value)
 				),
 				(config.help && m('span.help-block', config.help))
 			]);
@@ -408,7 +421,7 @@ mc.BootstrapForm = (function () {
 		button: function (ctrl, config) {
 			config = config || {};
 			var formConfig = ctrl.formConfig;
-			var attrs = mergeAttrsExcept({}, config, ['style', 'size', 'block', 'active', 'submit','autoEnable']);
+			var attrs = mergeExcept({}, config, ['style', 'size', 'block', 'active', 'submit','autoEnable']);
 			addClass(attrs, 'btn-' + (config.style || 'default'));
 			if (config.size) addClass(attrs, 'btn-' + config.size);
 			if (config.block) addClass(attrs, 'btn-block');
@@ -421,10 +434,10 @@ mc.BootstrapForm = (function () {
 				}
 			}
 
-			if (config.autoEnable) {
+			if (config.autoEnable && ctrl._formCtrl) {
 				attrs.config = function (el, isInitialized, context) {
 					if (isInitialized) return;
-					ctrl._buttons.push(el);
+					ctrl._formCtrl._buttons.push(el);
 				};
 				attrs.disabled = !ctrl.isValid();
 			}
@@ -432,7 +445,7 @@ mc.BootstrapForm = (function () {
 			return [
 				m((config.href ? 'a' : 'button') + '.btn', attrs, config.label),
 				' '
-				];
+			];
 		}
 	};
 
@@ -483,10 +496,7 @@ mc.BootstrapForm = (function () {
 			});
 			this._errors = errors;
 			if (_formCtrl) _formCtrl.fieldValidated(this);
-			return errors.length && {
-				value:value,
-				errors: errors
-			};
+			return !errors.length;
 			
 		};
 		
@@ -532,7 +542,7 @@ mc.BootstrapForm = (function () {
 			this._isValid = valid;
 			this._buttons.forEach(function (el) {
 				el.disabled = !(valid && this._hasChanged);
-			});
+			}, this);
 		};
 		
 		this.fieldChanged = function (fieldCtrl) {
@@ -545,7 +555,7 @@ mc.BootstrapForm = (function () {
 			this._hasChanged = hasChanged;
 			this._buttons.forEach(function (el) {
 				el.disabled = !(hasChanged && this._isValid);
-			});
+			}, this);
 		};
 		
 		
@@ -574,7 +584,13 @@ mc.BootstrapForm = (function () {
 						if (!fieldCtrl) {
 							fields[name] = fieldCtrl = new bsf.fieldController({model: this.model}, this);
 						}
-						_children.push(formControls[type](fieldCtrl, content));
+						var childConfig = {};
+						for (var k in content) {
+							childConfig[k] = content[k];
+						}
+						mergeSome(childConfig, config, ['layout', 'labelGridSize', 'inputGridSize']);
+						
+						_children.push(formControls[type](fieldCtrl, childConfig));
 					}
 					break;
 				default:
@@ -593,11 +609,8 @@ mc.BootstrapForm = (function () {
 			formConfig = {};
 		}
 		var attrs = {};
-		mergeAttrsExcept(attrs, formConfig, ['layout', 'labelGridSize', 'inputGridSize']);
+		mergeExcept(attrs, formConfig, ['layout', 'labelGridSize', 'inputGridSize']);
 		if (formConfig.layout) addClass(attrs, ' form-' + formConfig.layout);
-		for (var key in formConfig) {
-			ctrl.formConfig[key] = formConfig[key];
-		}
 		return m('form', attrs, ctrl.processChildren(formConfig, children));
 	};
 	bsf.fieldset = function (ctrl, label, children) {
